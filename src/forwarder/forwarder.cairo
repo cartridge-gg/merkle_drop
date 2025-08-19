@@ -1,30 +1,24 @@
 // SPDX-License-Identifier: MIT
 // Compatible with OpenZeppelin Contracts for Cairo ^2.0.0
 
-const UPGRADER_ROLE: felt252 = selector!("UPGRADER_ROLE");
-const FORWARDER_ROLE: felt252 = selector!("FORWARDER_ROLE");
 use starknet::ContractAddress;
 use starknet::eth_address::EthAddress;
 use crate::types::{EthereumSignature, LeafData, LeafDataHashImpl, MerkleTreeKey};
+
+const UPGRADER_ROLE: felt252 = selector!("UPGRADER_ROLE");
+const FORWARDER_ROLE: felt252 = selector!("FORWARDER_ROLE");
 
 #[starknet::interface]
 pub trait IForwarder<T> {
     fn initialize_drop(ref self: T, merkle_tree_key: MerkleTreeKey, merkle_tree_root: felt252);
 
-    fn verify_and_forward_ethereum(
+    fn verify_and_forward(
         ref self: T,
         merkle_tree_key: MerkleTreeKey,
         proof: Span<felt252>,
-        leaf_data: LeafData<EthAddress>,
-        recipient: ContractAddress,
-        eth_signature: EthereumSignature,
-    );
-
-    fn verify_and_forward_starknet(
-        ref self: T,
-        merkle_tree_key: MerkleTreeKey,
-        proof: Span<felt252>,
-        leaf_data: LeafData<ContractAddress>,
+        leaf_data: Span<felt252>,
+        recipient: Option<ContractAddress>,
+        eth_signature: Option<EthereumSignature>,
     );
 }
 
@@ -113,32 +107,33 @@ mod Forwarder {
             self.forwarder.initialize_drop(merkle_tree_key, merkle_tree_root);
         }
 
-        fn verify_and_forward_ethereum(
+        fn verify_and_forward(
             ref self: ContractState,
             merkle_tree_key: MerkleTreeKey,
             proof: Span<felt252>,
-            leaf_data: LeafData<EthAddress>,
-            recipient: ContractAddress,
-            eth_signature: EthereumSignature,
+            leaf_data: Span<felt252>,
+            recipient: Option<ContractAddress>,
+            eth_signature: Option<EthereumSignature>,
         ) {
-            self.accesscontrol.assert_only_role(FORWARDER_ROLE);
+            let mut leaf_data = leaf_data;
 
-            self
-                .forwarder
-                .verify_and_forward_ethereum(
-                    merkle_tree_key, proof, leaf_data, recipient, eth_signature,
-                );
-        }
-
-        fn verify_and_forward_starknet(
-            ref self: ContractState,
-            merkle_tree_key: MerkleTreeKey,
-            proof: Span<felt252>,
-            leaf_data: LeafData<ContractAddress>,
-        ) {
-            self.accesscontrol.assert_only_role(FORWARDER_ROLE);
-
-            self.forwarder.verify_and_forward_starknet(merkle_tree_key, proof, leaf_data);
+            if merkle_tree_key.chain_id == 'STARKNET' {
+                let leaf_data = Serde::<LeafData<ContractAddress>>::deserialize(ref leaf_data)
+                    .expect('invalid sn leaf_data');
+                self.forwarder.verify_and_forward_starknet(merkle_tree_key, proof, leaf_data);
+            } else if merkle_tree_key.chain_id == 'ETHEREUM' {
+                let leaf_data = Serde::<LeafData<EthAddress>>::deserialize(ref leaf_data)
+                    .expect('invalid eth leaf_data');
+                let recipient = recipient.expect('no recipient');
+                let eth_signature = eth_signature.expect('no eth_signature');
+                self
+                    .forwarder
+                    .verify_and_forward_ethereum(
+                        merkle_tree_key, proof, leaf_data, recipient, eth_signature,
+                    );
+            } else {
+                panic!("unsupported chain_id")
+            }
         }
     }
 

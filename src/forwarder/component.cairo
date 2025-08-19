@@ -57,6 +57,7 @@ pub mod ForwarderComponent {
             let merkle_root = self.assert_valid_merkle_root_and_get(merkle_tree_key);
             let eth_address = leaf_data.address;
 
+            // eth signature "links" eth_address to a sn_address (recipient)
             signature::verify_ethereum_signature(
                 eth_signature.v, eth_signature.r, eth_signature.s, eth_address, recipient,
             );
