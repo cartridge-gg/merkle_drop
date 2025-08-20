@@ -27,3 +27,7 @@ assert_macros = "2.12.0"
 
 [tool.scarb]
 allow-prebuilt-plugins = ["snforge_std"]
+
+[profile.dev.cairo]
+unstable-add-statements-code-locations-debug-info = true
+unstable-add-statements-functions-debug-info = true

@@ -200,8 +200,8 @@ pub mod ForwarderComponent {
             // assert(tree.verify(merkle_tree_root, leaf_hash, proof), 'merkle_drop: invalid
             // proof');
 
-            // using OZ
-            let is_valid = merkle_proof::verify_poseidon(proof, root, leaf_hash);
+            // using OZ StandardMerkleTree
+            let is_valid = merkle_proof::verify_pedersen(proof, root, leaf_hash);
             assert!(is_valid, "merkle_drop: invalid proof");
         }
     }

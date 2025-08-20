@@ -45,6 +45,9 @@ mod ClaimContract {
         fn claim_from_forwarder(
             ref self: ContractState, recipient: ContractAddress, leaf_data: Span<felt252>,
         ) {
+            // println!("recipient: 0x{:x}", recipient);
+            // println!("leaf_data: {:?}", leaf_data);
+
             // MUST check caller is forwarder
             self.assert_caller_is_forwarder();
 

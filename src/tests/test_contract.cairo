@@ -28,17 +28,15 @@ fn setup() -> (IForwarderABIDispatcher, IClaimDispatcher) {
     );
     let claim_disp = IClaimDispatcher { contract_address: claim_contract_address };
 
+    println!("     forwarder_address: 0x{:x}", forwarder_disp.contract_address);
+    println!("claim_contract_address: 0x{:x}", claim_disp.contract_address);
+
     (forwarder_disp, claim_disp)
 }
 
 #[test]
 fn test_deploy() {
     let (forwarder_disp, claim_disp) = setup();
-
-    println!("     forwarder_address: 0x{:x}", forwarder_disp.contract_address);
-    println!("claim_contract_address: 0x{:x}", claim_disp.contract_address);
-    // forwarder_address: 0x366c14bcd226468d3f30999774e3a1fc4c49efcb6b1a0ca0fe5d54e5bc33e3f
-// claim_contract_address: 0x24e1322e4a9f29289643fe8c21e2a869b98bb9df3fe5dfb3e285c100541ca62
 }
 
 #[test]
@@ -75,8 +73,22 @@ fn test___initialize_drop_cannot_reiint() {
 }
 
 
+// #[derive(Drop, Copy, Clone, Serde, PartialEq)]
+// pub struct Data {
+//     pub token_ids: Span<felt252>,
+// }
+
+// #[test]
+// fn test_ser() {
+//     let data = Data { token_ids: array![333, 444, 555].span() };
+
+//     let mut res = array![];
+//     data.serialize(ref res);
+//     println!("{:?}", res);
+// }
+
 #[test]
-fn test__drop() {
+fn test__ETHEREUM_drop() {
     let (forwarder_disp, claim_disp) = setup();
 
     let key = MerkleTreeKey {
@@ -85,7 +97,7 @@ fn test__drop() {
         entrypoint: selector!("claim_from_forwarder"),
     };
 
-    let root = 0x015a47b37ba1e8fb61474b55fc6104793650d7d6e99b3c44100c095c3188b9a9;
+    let root = 0x04f62437709789fce6e111fb7aaecd04078136042ec81a0f53f32c8c7884bf2d;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
@@ -94,22 +106,22 @@ fn test__drop() {
         address: ETH_ADDRESS.try_into().unwrap(),
         claim_contract_address: claim_disp.contract_address,
         entrypoint: selector!("claim_from_forwarder"),
-        data: array![297, 483, 678, 707, 865],
+        data: array![5, 297, 483, 678, 707, 865],
     };
 
     let mut leaf_data_serialized = array![];
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x02a0ebc09d4a568fd7f1ae663469247dbad163429ec54887b672162770ae45e0,
-        0x0471f3483e0fb75722464e44568db264cb48b5545fb38ce2a146b36fe123a91e,
-        0x046ed79819945532eb7744e8f5db1f871765899e7d74a09d838e64bc8d692e8b,
-        0x27fb995695b667441728062fa5d47056ec65a530f0398b5980d07778e1126b,
-        0x023c0f0d962ad65f5635c61e18b415c9dc58a53bcc219f98ad7d361fcc39d8e5,
-        0x058fe8e0b2088c16abeb1ebf234a74a0f647a82e6d9244bbaaca6fbabeb68a79,
-        0x0210059388023d26123bfa59e75fea7d80e8346687325deb7be99451362dbffb,
-        0x0459777566b02cce6dc8fe4cdf86cbef91392ae37b52d814d48cc275f8b4d3c1,
-        0x041bf2499ddd486ed85f8a865453a6bbf4dc4a1cbf3e9be814054e80fe2ae3fc,
+        0x042a27058a977b14bb033e5daf508a60ead1f22a5576c08899e8be4c81e39377,
+        0xb72259c3dbe23111ebb9b44fd713b0a313073c060352452802f89bef7fe284,
+        0x0796d0efba69110bb3542064454a0996bb685b08fbefb04d7d1b299a54edc292,
+        0x020126e1cd62542e792fc21ac81eb83fc0f4ced84f29e7102c7a6dacaef44eeb,
+        0x06aeaa92656e20a87e5ea4a535092665299e840e9f7c603bca4a77dc0163d405,
+        0x065bc9eafd4577564f986822bddeba913addac79e728b83005be3f7cdbf8cd06,
+        0x04e5d7d879c3bd35fbf47d89be62474783c19e019b6c10ce47a2ad417f92b274,
+        0x01695443d6ca9d90645139cd67f04ebbb0334be84b4b59e0e325ac710dac6413,
+        0x0daecad22c4c31fd0d5b7142b654469dcf969c861d9452ced9910864be9c14,
     ]
         .span();
 
@@ -132,6 +144,9 @@ fn test__drop() {
             Option::Some(recipient_address),
             Option::Some(signature),
         );
+
+    let balance = claim_disp.get_balance(recipient_address);
+    assert!(balance == 5, "invalid recipient balance")
 }
 // #[test]
 // #[feature("safe_dispatcher")]
