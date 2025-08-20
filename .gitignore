@@ -1,4 +1,6 @@
 target
 .DS_Store
 
-js
+.snfoundry_cache
+
+node_modules
