@@ -3,20 +3,17 @@ use starknet::ContractAddress;
 
 #[starknet::component]
 pub mod ForwarderComponent {
-    use super::*;
     use core::num::traits::Zero;
-
-    use starknet::eth_address::EthAddress;
-    use starknet::syscalls::call_contract_syscall;
-    use starknet::SyscallResultTrait;
-    use starknet::storage::{
-        Map, StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry,
-    };
-
     use openzeppelin_merkle_tree::merkle_proof;
-
+    use starknet::SyscallResultTrait;
+    use starknet::eth_address::EthAddress;
+    use starknet::storage::{
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
+    };
+    use starknet::syscalls::call_contract_syscall;
     use crate::forwarder::signature;
-    use crate::types::{LeafData, LeafDataHashImpl, MerkleTreeKey, EthereumSignature};
+    use crate::types::{EthereumSignature, LeafData, LeafDataHashImpl, MerkleTreeKey};
+    use super::*;
 
     #[storage]
     pub struct Storage {
@@ -28,6 +25,7 @@ pub mod ForwarderComponent {
     #[derive(Drop, PartialEq, starknet::Event)]
     pub enum Event {
         MerkleDropInitialized: MerkleDropInitialized,
+        VerifiedAndForwarded: VerifiedAndForwarded,
     }
 
     #[derive(Drop, PartialEq, starknet::Event)]
@@ -39,6 +37,18 @@ pub mod ForwarderComponent {
         #[key]
         pub entrypoint: felt252,
         pub merkle_tree_root: felt252,
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    pub struct VerifiedAndForwarded {
+        #[key]
+        pub chain_id: felt252,
+        #[key]
+        pub claim_contract_address: ContractAddress,
+        #[key]
+        pub entrypoint: felt252,
+        pub leaf_hash: felt252,
+        pub recipient: ContractAddress,
     }
 
 
@@ -67,7 +77,7 @@ pub mod ForwarderComponent {
             self.assert_valid_proof(proof, merkle_root, leaf_hash);
 
             let data = leaf_data.data.span();
-            self.forward(merkle_tree_key, recipient, data);
+            self.forward(merkle_tree_key, leaf_hash, recipient, data);
         }
 
         fn verify_and_forward_starknet(
@@ -84,7 +94,7 @@ pub mod ForwarderComponent {
 
             let recipient = leaf_data.address;
             let data = leaf_data.data.span();
-            self.forward(merkle_tree_key, recipient, data);
+            self.forward(merkle_tree_key, leaf_hash, recipient, data);
         }
 
 
@@ -95,6 +105,7 @@ pub mod ForwarderComponent {
         fn forward(
             ref self: ComponentState<TContractState>,
             merkle_tree_key: MerkleTreeKey,
+            leaf_hash: felt252,
             recipient: ContractAddress,
             data: Span<felt252>,
         ) {
@@ -106,6 +117,17 @@ pub mod ForwarderComponent {
                 merkle_tree_key.claim_contract_address, merkle_tree_key.entrypoint, calldata.span(),
             )
                 .unwrap_syscall();
+
+            self
+                .emit(
+                    VerifiedAndForwarded {
+                        chain_id: merkle_tree_key.chain_id,
+                        claim_contract_address: merkle_tree_key.claim_contract_address,
+                        entrypoint: merkle_tree_key.entrypoint,
+                        leaf_hash,
+                        recipient,
+                    },
+                )
         }
 
         // called by permissioned operator
