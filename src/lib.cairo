@@ -3,11 +3,12 @@ pub mod consumer {
 }
 
 pub mod forwarder {
-    pub mod forwarder;
     pub mod component;
+    pub mod forwarder;
     pub mod signature;
 
     pub use component::ForwarderComponent;
+    pub use forwarder::{IForwarderABI, IForwarderABIDispatcher, IForwarderABIDispatcherTrait};
 }
 
 pub mod types {
@@ -15,7 +16,13 @@ pub mod types {
     pub mod merkle;
     pub mod signature;
 
-    pub use leaf::{LeafData, LeadDataHasher, LeafDataHashImpl};
+    pub use leaf::{LeadDataHasher, LeafData, LeafDataHashImpl};
     pub use merkle::MerkleTreeKey;
     pub use signature::EthereumSignature;
+}
+
+
+#[cfg(test)]
+pub mod tests {
+    pub mod test_contract;
 }

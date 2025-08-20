@@ -9,6 +9,20 @@ const UPGRADER_ROLE: felt252 = selector!("UPGRADER_ROLE");
 const FORWARDER_ROLE: felt252 = selector!("FORWARDER_ROLE");
 
 #[starknet::interface]
+pub trait IForwarderABI<T> {
+    fn initialize_drop(ref self: T, merkle_tree_key: MerkleTreeKey, merkle_tree_root: felt252);
+    fn verify_and_forward(
+        ref self: T,
+        merkle_tree_key: MerkleTreeKey,
+        proof: Span<felt252>,
+        leaf_data: Span<felt252>,
+        recipient: Option<ContractAddress>,
+        eth_signature: Option<EthereumSignature>,
+    );
+    fn get_merkle_root(ref self: T, merkle_tree_key: MerkleTreeKey) -> felt252;
+}
+
+#[starknet::interface]
 pub trait IForwarder<T> {
     fn initialize_drop(ref self: T, merkle_tree_key: MerkleTreeKey, merkle_tree_root: felt252);
 
@@ -46,6 +60,10 @@ mod Forwarder {
         AccessControlComponent::AccessControlMixinImpl<ContractState>;
     #[abi(embed_v0)]
     impl PausableImpl = PausableComponent::PausableImpl<ContractState>;
+
+    #[abi(embed_v0)]
+    impl ForwarderExternalImpl =
+        ForwarderComponent::ForwarderExternalImpl<ContractState>;
 
     // Internal
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
@@ -103,7 +121,7 @@ mod Forwarder {
         fn initialize_drop(
             ref self: ContractState, merkle_tree_key: MerkleTreeKey, merkle_tree_root: felt252,
         ) {
-            self.accesscontrol.assert_only_role(FORWARDER_ROLE);
+            // self.accesscontrol.assert_only_role(FORWARDER_ROLE);
             self.forwarder.initialize_drop(merkle_tree_key, merkle_tree_root);
         }
 

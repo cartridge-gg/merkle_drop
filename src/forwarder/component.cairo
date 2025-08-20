@@ -1,5 +1,10 @@
 use starknet::ContractAddress;
+use crate::types::{EthereumSignature, LeafData, LeafDataHashImpl, MerkleTreeKey};
 
+#[starknet::interface]
+pub trait IForwarderExternal<T> {
+    fn get_merkle_root(ref self: T, merkle_tree_key: MerkleTreeKey) -> felt252;
+}
 
 #[starknet::component]
 pub mod ForwarderComponent {
@@ -12,7 +17,6 @@ pub mod ForwarderComponent {
     };
     use starknet::syscalls::call_contract_syscall;
     use crate::forwarder::signature;
-    use crate::types::{EthereumSignature, LeafData, LeafDataHashImpl, MerkleTreeKey};
     use super::*;
 
     #[storage]
@@ -49,6 +53,17 @@ pub mod ForwarderComponent {
         pub entrypoint: felt252,
         pub leaf_hash: felt252,
         pub recipient: ContractAddress,
+    }
+
+    #[embeddable_as(ForwarderExternalImpl)]
+    pub impl ForwarderExternal<
+        TContractState, +HasComponent<TContractState>, +Drop<TContractState>,
+    > of super::IForwarderExternal<ComponentState<TContractState>> {
+        fn get_merkle_root(
+            ref self: ComponentState<TContractState>, merkle_tree_key: MerkleTreeKey,
+        ) -> felt252 {
+            self.merkle_tree_roots.entry(merkle_tree_key).read()
+        }
     }
 
 

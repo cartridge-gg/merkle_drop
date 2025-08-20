@@ -5,6 +5,9 @@ edition = "2024_07"
 
 # See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest.html
 
+[scripts]
+test = "snforge test"
+
 [dependencies]
 starknet = "2.12.0"
 
@@ -18,4 +21,9 @@ alexandria_bytes = "0.6.0"
 
 
 [dev-dependencies]
-snforge_std = "0.48.0"
+snforge_std = "0.48.1"
+assert_macros = "2.12.0"
+
+
+[tool.scarb]
+allow-prebuilt-plugins = ["snforge_std"]

@@ -1,4 +1,3 @@
-
 use starknet::ContractAddress;
 
 #[derive(Drop, Copy, Clone, Serde, PartialEq, Hash)]
