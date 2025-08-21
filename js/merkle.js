@@ -3,72 +3,56 @@
 import { pad } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { StandardMerkleTree } from "@ericnordelo/strk-merkle-tree";
-import { hash, num, selector } from "starknet";
+import { hashLeaf } from "./hash_leaf.js";
+import fs from "node:fs";
 
-// entry 3 is modified to use custom eth address
-// ["0x4884ABe82470adf54f4e19Fa39712384c05112be", [297, 483, 678, 707, 865]],
-import snapshot from "./dope.json" assert { type: "json" };
-import { CallData } from "starknet";
+const pk0 = pad("0x420");
+const account = privateKeyToAccount(pk0);
+
 
 const main = async () => {
-  const pk0 = pad("0x420");
-  const account = privateKeyToAccount(pk0);
+  const snapshotPath = process.argv[2];
+  const address = process.argv[3] || account.address;
 
-  const claim_contract_address =
-    "0x53f7a7259044abbf8d8cf7f9987d9a1da3287c918c1cf996307ba8ba864193a";
-  const entrypoint = selector.getSelectorFromName("claim_from_forwarder");
-
-  const snapshot_serialized = snapshot.map((i) => {
-    return [i[0], CallData.compile([i[1]])];
-  });
-  const snapshot_encoded = snapshot_serialized.map((i) => {
-    return [
-      num.toHex64(
-        hash.computePoseidonHashOnElements([
-          i[0],
-          claim_contract_address,
-          entrypoint,
-          i[1].length,
-          ...i[1],
-        ])
-      ),
-    ];
+  if (!snapshotPath) {
+    console.log("missing arg[0] snapshot_path");
+    return;
+  }
+  const snapshot = JSON.parse(fs.readFileSync(snapshotPath));
+  const snapshotHashed = snapshot.snapshot.map((i) => {
+    return [hashLeaf(i, snapshot.claim_contract, snapshot.entrypoint)];
   });
 
-  const index = snapshot_serialized.findIndex((i) => {
-    return BigInt(i[0]) === BigInt(account.address);
+  const index = snapshot.snapshot.findIndex((i) => {
+    return BigInt(i[0]) === BigInt(address);
   });
-  const found = snapshot_serialized[index];
+  const found = snapshot.snapshot[index];
 
-  const hashed = num.toHex64(
-    hash.computePoseidonHashOnElements([
-      found[0],
-      claim_contract_address,
-      entrypoint,
-      found[1].length,
-      ...found[1],
-    ])
-  );
-
-  const index_hashed = snapshot_encoded.findIndex(
+  const hashed = hashLeaf(found, snapshot.claim_contract, snapshot.entrypoint);
+  const indexHashed = snapshotHashed.findIndex(
     (i) => BigInt(i) === BigInt(hashed)
   );
 
   console.log(index);
-  console.log(index_hashed);
+  console.log(indexHashed);
 
-  const tree = StandardMerkleTree.of(snapshot_encoded, ["felt252"], {
+  const tree = StandardMerkleTree.of(snapshotHashed, ["felt252"], {
     sortLeaves: true,
   });
-  const proof = tree.getProof(index_hashed);
-  const leafHash = tree.leafHash(snapshot_encoded[index_hashed]);
+  const proof = tree.getProof(indexHashed);
+  const leafHash = tree.leafHash(snapshotHashed[indexHashed]);
   console.log("Merkle Root:", tree.root);
   console.log("Proof:", proof);
-  console.log("leaf: ", snapshot_encoded[index_hashed]);
+  console.log("leaf: ", snapshotHashed[indexHashed]);
   console.log("leafHash:", leafHash);
   console.log(found);
-  const isValid = tree.verify(index_hashed, proof);
+  const isValid = tree.verify(indexHashed, proof);
   console.log("valid: ", isValid);
+
+  // fs.writeFileSync(
+  //   "./snapshots/dope-22728943-eth-tree.json",
+  //   JSON.stringify(tree.dump(), null, 2)
+  // );
 };
 
 main();

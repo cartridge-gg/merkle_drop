@@ -118,31 +118,31 @@ fn test__ETHEREUM_drop() {
         entrypoint: selector!("claim_from_forwarder"),
     };
 
-    let root = 0x019de87d774d09f2224622078499527edf4aa5ed00c7a8858aa7d30ecebbfee7;
+    let root = 0x078a4171d7a74082438af64eb26ed803f136698a0cd4f7c5ff80a057e042b823;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
         EthAddress,
     > {
         address: ETH_ADDRESS.try_into().unwrap(),
-        claim_contract_address: claim_disp.contract_address,
-        entrypoint: selector!("claim_from_forwarder"),
-        data: array![5, 297, 483, 678, 707, 865],
+        claim_contract_address: key.claim_contract_address,
+        entrypoint: key.entrypoint,
+        data: array![8, 21, 207, 295, 472, 570, 900, 943, 974],
     };
 
     let mut leaf_data_serialized = array![];
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x023bce5a12fbf63e57e6fac449daf28ab3dffa8a33a8760239cbcbdc7f2942ba,
-        0x04a7333f0452b4c247b6644d40668321e2518ff662f13c59c3ac251e200abb08,
-        0x03a00ff744b8c707c6d2d3954711ea9ab6d57eb354621a059e9933d11c1ee601,
-        0x0390a96315e83779890d720a65c06dca215ff73c4069b2eb3e51283727c67875,
-        0x04167089f6022f2532bf6dda89041f20c59c253b8d8175b4cd82384f1640309a,
-        0x05ff3b592f62e2ce7b74c91838a0a5e93072ddcdc4d1507dd06d8da64d603416,
-        0x03e73901a7b03974dbd851b2844f4d9e90cb09ed07e1b5247a8aaafb8183ac4b,
-        0x023df1a6e2290fd02746ddb4f532acde71884d62656e8e11fc898de7275d1128,
-        0x0112d9ba96008dc89ac84b09759ee62bbbf16485e319e9eb4d907b44d76c141f,
+        0x049efe7c451054b64079a86c6f0df54aafb4b5e7cc0a9fc98fb6bd5de2280ad5,
+        0x04bcafe857270465726cb2895f4da727446962660bbe1dae46555cd3f64bd17f,
+        0x074efaae4e4c3b9bdc64c97a0e4a3848de7aaaf47d4be40b159303af8fef3e2d,
+        0x03f622fa1f1329d1453bde872c5c6bb2f6a0fbc94fc811feb5ac63c0306c9df5,
+        0x07b682376744cde36f6fd98286e4cee873beb8c5890fa05590edf79171cf8c32,
+        0x03dc286e0fc2508659a71773faa6c79ae9b6195319cce70ebb51e456b36aac40,
+        0x05a9eac042e7f9f20cbed2da69631f5a4dc2138f22b5feb0a94524b490becbcb,
+        0x0768e0e76a2be560fb65cc228ad05ddaa84879d499793063f35ffe57e088d516,
+        0x03daf8d4d1e545ab1c3f275339af1b80a38281bdc626a5cedfdb61ee486a002c,
     ]
         .span();
 
@@ -167,24 +167,61 @@ fn test__ETHEREUM_drop() {
         );
 
     let balance = claim_disp.get_balance('TOKEN_A', recipient_address);
-    assert!(balance == 5, "invalid recipient balance")
+    assert!(balance == 8, "invalid recipient balance")
 }
-// #[test]
-// #[feature("safe_dispatcher")]
-// fn test_cannot_increase_balance_with_zero_value() {
-//     let contract_address = deploy_contract("HelloStarknet");
 
-//     let safe_dispatcher = IHelloStarknetSafeDispatcher { contract_address };
 
-//     let balance_before = safe_dispatcher.get_balance().unwrap();
-//     assert(balance_before == 0, 'Invalid balance');
+#[test]
+fn test__STARKNET_drop() {
+    let (forwarder_disp, claim_disp) = setup();
 
-//     match safe_dispatcher.increase_balance(0) {
-//         Result::Ok(_) => core::panic_with_felt252('Should have panicked'),
-//         Result::Err(panic_data) => {
-//             assert(*panic_data.at(0) == 'Amount cannot be 0', *panic_data.at(0));
-//         },
-//     };
-// }
+    let key = MerkleTreeKey {
+        chain_id: 'STARKNET',
+        claim_contract_address: claim_disp.contract_address,
+        entrypoint: selector!("claim_from_forwarder_with_extra_data"),
+    };
 
+    let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
+    forwarder_disp.initialize_drop(key, root);
+
+    let recipient_address: ContractAddress =
+        0x9aa528ac622ad7cf637e5b8226f465da1080c81a2daeb37a97ee6246ae2301
+        .try_into()
+        .unwrap();
+
+    let leaf_data = LeafData::<
+        ContractAddress,
+    > {
+        address: recipient_address,
+        claim_contract_address: key.claim_contract_address,
+        entrypoint: key.entrypoint,
+        data: array![
+            20, 10, 20, 95, 231, 232, 323, 334, 393, 439, 460, 534, 537, 576, 704, 743, 808, 902,
+            922, 928, 931, 933, 949,
+        ],
+    };
+
+    let mut leaf_data_serialized = array![];
+    leaf_data.serialize(ref leaf_data_serialized);
+
+    let proof = array![
+        0x0713a9fbd467722c207f41269abd3542ea6d71f605c730bf88fb3ed20b00ad5b,
+        0x02aec2a0c5e96aaeffe2d674423574ad9c7b2c8ed29915b5f453f8aec06177f8,
+        0x62d2ea592cdce23fc6c02d0d99858cdd9d8857aa03cbe703613a8ffd3c1090,
+        0x04233a1040604b6262ea02d26eaf738fc846399f332ac1ddcfdde325ff98102c,
+        0x04fb444aa4c91df19432e7737956bba76dc69a8cf5520529946d6eb90f831bf1,
+        0xbdc9206817ac505bc65419c943fe8dec122d10051d515d8c681a3a5c1904c3,
+        0xca85167f27bae2b7251f45e75e3a435b4379dcff27df436d819a8abc6f94d1,
+        0x0623148f5a7eb3515b9da98e2d1345662f97192b1493466d521f959be39d86b0,
+    ]
+        .span();
+
+    forwarder_disp
+        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+
+    let balance_A = claim_disp.get_balance('TOKEN_A', recipient_address);
+    assert!(balance_A == 20, "invalid recipient balance TOKEN_A")
+    let balance_B = claim_disp.get_balance('TOKEN_B', recipient_address);
+    assert!(balance_B == 10, "invalid recipient balance TOKEN_B")
+}
 

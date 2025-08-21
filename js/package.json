@@ -5,7 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "snapshot": "slot -- merkle-drops build --name test_dope --contract-address 0x8707276DF042E89669d69A177d3DA7dC78bd8723  --rpc-url https://ethereum-rpc.publicnode.com --description test_dope_descr --claim-contract 0x53f7a7259044abbf8d8cf7f9987d9a1da3287c918c1cf996307ba8ba864193a  --entrypoint claim_from_forwarder --from-id 1 --to-id 1000 --block-height 22728943 --output ./snapshots/dope-22728943.json",
+    "build_eth": "./build_eth.js",
+    "build_sn": "./build_eth.sn",
+    "merkle_eth": "./merkle.js ./snapshots/dope-22728943-eth.json",
+    "merkle_sn": "./merkle.js ./snapshots/dope-22728943-sn.json 0x9aa528ac622ad7cf637e5b8226f465da1080c81a2daeb37a97ee6246ae2301"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +18,8 @@
     "@ericnordelo/strk-merkle-tree": "^1.0.0",
     "starknet": "^7.6.4",
     "viem": "^2.34.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7"
   }
 }

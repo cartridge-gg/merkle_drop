@@ -3,8 +3,11 @@ use starknet::ContractAddress;
 #[starknet::interface]
 pub trait IClaim<T> {
     fn initialize(ref self: T, forwarder_address: ContractAddress);
-    fn claim_from_forwarder(ref self: T, recipient: ContractAddress, leaf_data: Span<felt252>);
     fn get_balance(self: @T, key: felt252, address: ContractAddress) -> u32;
+    fn claim_from_forwarder(ref self: T, recipient: ContractAddress, leaf_data: Span<felt252>);
+    fn claim_from_forwarder_with_extra_data(
+        ref self: T, recipient: ContractAddress, leaf_data: Span<felt252>,
+    );
 }
 
 #[derive(Drop, Copy, Clone, Serde, PartialEq)]
@@ -12,11 +15,12 @@ pub struct LeafData {
     pub token_ids: Span<felt252>,
 }
 
-// #[derive(Drop, Copy, Clone, Serde, PartialEq)]
-// pub struct LeafDataWithAmounts {
-//     pub token_A_amount: u32,
-//     pub token_B_amount: u32,
-// }
+#[derive(Drop, Copy, Clone, Serde, PartialEq)]
+pub struct LeafDataWithExtraData {
+    pub amount_A: u32,
+    pub amount_B: u32,
+    pub token_ids: Span<felt252>,
+}
 
 #[starknet::contract]
 mod ClaimContract {
@@ -49,9 +53,6 @@ mod ClaimContract {
         fn claim_from_forwarder(
             ref self: ContractState, recipient: ContractAddress, leaf_data: Span<felt252>,
         ) {
-            // println!("recipient: 0x{:x}", recipient);
-            // println!("leaf_data: {:?}", leaf_data);
-
             // MUST check caller is forwarder
             self.assert_caller_is_forwarder();
 
@@ -65,6 +66,25 @@ mod ClaimContract {
             // increase balance
             let balance = self.balance.entry(('TOKEN_A', recipient)).read();
             self.balance.entry(('TOKEN_A', recipient)).write(balance + amount);
+        }
+
+        fn claim_from_forwarder_with_extra_data(
+            ref self: ContractState, recipient: ContractAddress, leaf_data: Span<felt252>,
+        ) {
+            // MUST check caller is forwarder
+            self.assert_caller_is_forwarder();
+
+            // deserialize leaf_data
+            let mut leaf_data = leaf_data;
+            let data = Serde::<LeafDataWithExtraData>::deserialize(ref leaf_data).unwrap();
+
+            // increase TOKEN_A balance
+            let balance = self.balance.entry(('TOKEN_A', recipient)).read();
+            self.balance.entry(('TOKEN_A', recipient)).write(balance + data.amount_A);
+
+            // increase TOKEN_b balance
+            let balance = self.balance.entry(('TOKEN_B', recipient)).read();
+            self.balance.entry(('TOKEN_B', recipient)).write(balance + data.amount_B);
         }
     }
 
