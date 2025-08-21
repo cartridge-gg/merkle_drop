@@ -121,7 +121,7 @@ fn test__ETHEREUM_drop() {
         entrypoint: selector!("claim_from_forwarder"),
     };
 
-    let root = 0x078a4171d7a74082438af64eb26ed803f136698a0cd4f7c5ff80a057e042b823;
+    let root = 0x04ab96f453c99bf262e658499fc369f5711ab1232d44e4b6f18fded1f6daee43;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
@@ -137,15 +137,15 @@ fn test__ETHEREUM_drop() {
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x049efe7c451054b64079a86c6f0df54aafb4b5e7cc0a9fc98fb6bd5de2280ad5,
-        0x04bcafe857270465726cb2895f4da727446962660bbe1dae46555cd3f64bd17f,
-        0x074efaae4e4c3b9bdc64c97a0e4a3848de7aaaf47d4be40b159303af8fef3e2d,
-        0x03f622fa1f1329d1453bde872c5c6bb2f6a0fbc94fc811feb5ac63c0306c9df5,
-        0x07b682376744cde36f6fd98286e4cee873beb8c5890fa05590edf79171cf8c32,
-        0x03dc286e0fc2508659a71773faa6c79ae9b6195319cce70ebb51e456b36aac40,
-        0x05a9eac042e7f9f20cbed2da69631f5a4dc2138f22b5feb0a94524b490becbcb,
-        0x0768e0e76a2be560fb65cc228ad05ddaa84879d499793063f35ffe57e088d516,
-        0x03daf8d4d1e545ab1c3f275339af1b80a38281bdc626a5cedfdb61ee486a002c,
+        0x066e39a5d2d4723d803f449de56723b00668a879c89ca99deea16e271b486067,
+        0x02644c696711ac69f6e47be4871b257c4f1e01759ba9c25319416812649c1b50,
+        0x06465b2b8fe714c8f358d31eecc699fccb4f50bdf8760cdeacce1824bdb8ca95,
+        0x0548a9da036809dffa408de9c84e935dd5fbfac33b714acedeabcd69eca3fc3f,
+        0x3e631faf351715bf0ef92e746dcf26288f47ef5b50e241612710fc87ad3e7e,
+        0x0291d2f413cef8acff3e4f6a939ec45f3aea13640af236a315937dab0e813f75,
+        0x01a69824bbfc04bc381507bac6e836fc5e52fd3ebecf397d2faba575d61c89d3,
+        0x054db4ee545cda1750d8fe7ca32a033ce5dca641116ae7b19f0c0edac65c5d2e,
+        0x0181376f195d235c137a42246122f6e5f07a0ba60a938b484b41bbc326ab311e,
     ]
         .span();
 
@@ -173,6 +173,19 @@ fn test__ETHEREUM_drop() {
     assert!(balance == 8, "invalid recipient balance")
 }
 
+pub fn STARKNET_PROOF() -> Array<felt252> {
+    array![
+        0x0247e33257a7f0345a7783a124c36262d7b23506fd9c4f01f8a6007c25a53e4a,
+        0x016153b7a29382b49a7233d335524e415ee5cc48403a5eed1b972a3ba12ca449,
+        0x08e756f2bbe422d1e17b19170511b35e134c9e952e4bb38ee8e90e4cf9226a,
+        0x07ec082aefc9265acdae8cc3323e9037e2537cd79f947b984341b4df403a5210,
+        0x0167a2199272f2842840050662527775fedafdd87eba1247c07e78db75b82cd6,
+        0x0408bc75d619e61daf50ca3cbe3180c3c0e260464dc170fbce3132122676acaa,
+        0x01816f8c79e990857b989d912350a0b337062a07de96dc6005707d46d419aad8,
+        0x05508e688cf62be34f9f832d45a094b46a16c779708c987ccdc8df6ce292bd9a,
+        0x04246df82281f7aa65a99b2e76e66bdcfa91b3ac389f0f12bd451a03f0dc3bc8,
+    ]
+}
 
 #[test]
 fn test__STARKNET_drop() {
@@ -184,7 +197,7 @@ fn test__STARKNET_drop() {
         entrypoint: selector!("claim_from_forwarder_with_extra_data"),
     };
 
-    let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
+    let root = 0x0411aeeadabadc9471e14f90bdc1077597b74082bc1420105733f002661520be;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
@@ -202,17 +215,7 @@ fn test__STARKNET_drop() {
     let mut leaf_data_serialized = array![];
     leaf_data.serialize(ref leaf_data_serialized);
 
-    let proof = array![
-        0x0713a9fbd467722c207f41269abd3542ea6d71f605c730bf88fb3ed20b00ad5b,
-        0x02aec2a0c5e96aaeffe2d674423574ad9c7b2c8ed29915b5f453f8aec06177f8,
-        0x62d2ea592cdce23fc6c02d0d99858cdd9d8857aa03cbe703613a8ffd3c1090,
-        0x04233a1040604b6262ea02d26eaf738fc846399f332ac1ddcfdde325ff98102c,
-        0x04fb444aa4c91df19432e7737956bba76dc69a8cf5520529946d6eb90f831bf1,
-        0xbdc9206817ac505bc65419c943fe8dec122d10051d515d8c681a3a5c1904c3,
-        0xca85167f27bae2b7251f45e75e3a435b4379dcff27df436d819a8abc6f94d1,
-        0x0623148f5a7eb3515b9da98e2d1345662f97192b1493466d521f959be39d86b0,
-    ]
-        .span();
+    let proof = STARKNET_PROOF().span();
 
     forwarder_disp
         .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
@@ -236,7 +239,7 @@ fn test__STARKNET_drop_cannot_claim_twice() {
         entrypoint: selector!("claim_from_forwarder_with_extra_data"),
     };
 
-    let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
+    let root = 0x0411aeeadabadc9471e14f90bdc1077597b74082bc1420105733f002661520be;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
@@ -254,20 +257,12 @@ fn test__STARKNET_drop_cannot_claim_twice() {
     let mut leaf_data_serialized = array![];
     leaf_data.serialize(ref leaf_data_serialized);
 
-    let proof = array![
-        0x0713a9fbd467722c207f41269abd3542ea6d71f605c730bf88fb3ed20b00ad5b,
-        0x02aec2a0c5e96aaeffe2d674423574ad9c7b2c8ed29915b5f453f8aec06177f8,
-        0x62d2ea592cdce23fc6c02d0d99858cdd9d8857aa03cbe703613a8ffd3c1090,
-        0x04233a1040604b6262ea02d26eaf738fc846399f332ac1ddcfdde325ff98102c,
-        0x04fb444aa4c91df19432e7737956bba76dc69a8cf5520529946d6eb90f831bf1,
-        0xbdc9206817ac505bc65419c943fe8dec122d10051d515d8c681a3a5c1904c3,
-        0xca85167f27bae2b7251f45e75e3a435b4379dcff27df436d819a8abc6f94d1,
-        0x0623148f5a7eb3515b9da98e2d1345662f97192b1493466d521f959be39d86b0,
-    ]
-        .span();
+    let proof = STARKNET_PROOF().span();
 
     forwarder_disp
-        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+        .verify_and_forward(
+            key, proof.clone(), leaf_data_serialized.span(), Option::None, Option::None,
+        );
 
     forwarder_disp
         .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
@@ -285,7 +280,7 @@ fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
         entrypoint: selector!("claim_from_forwarder_with_extra_data"),
     };
 
-    let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
+    let root = 0x0411aeeadabadc9471e14f90bdc1077597b74082bc1420105733f002661520be;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
@@ -303,18 +298,11 @@ fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
     let mut leaf_data_serialized = array![];
     leaf_data.serialize(ref leaf_data_serialized);
 
-    let proof = array![
-        0x0713a9fbd467722c207f41269abd3542ea6d71f605c730bf88fb3ed20b00ad5b,
-        0x02aec2a0c5e96aaeffe2d674423574ad9c7b2c8ed29915b5f453f8aec06177f8,
-        0x62d2ea592cdce23fc6c02d0d99858cdd9d8857aa03cbe703613a8ffd3c1090,
-        // 0x04233a1040604b6262ea02d26eaf738fc846399f332ac1ddcfdde325ff98102c,
-        0x04fb444aa4c91df19432e7737956bba76dc69a8cf5520529946d6eb90f831bf1,
-        0xbdc9206817ac505bc65419c943fe8dec122d10051d515d8c681a3a5c1904c3,
-        0xca85167f27bae2b7251f45e75e3a435b4379dcff27df436d819a8abc6f94d1,
-        0x0623148f5a7eb3515b9da98e2d1345662f97192b1493466d521f959be39d86b0,
-    ]
-        .span();
+    let mut proof = STARKNET_PROOF();
+    let _ = proof.pop_front();
 
     forwarder_disp
-        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+        .verify_and_forward(
+            key, proof.span(), leaf_data_serialized.span(), Option::None, Option::None,
+        );
 }

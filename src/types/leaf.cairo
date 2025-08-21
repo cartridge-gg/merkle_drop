@@ -20,10 +20,11 @@ pub impl LeafDataHashImpl<T, +Serde<T>> of LeadDataHasher<T> {
         let mut serialized = array![];
         self.serialize(ref serialized);
 
-        let hashed = poseidon_hash_span(serialized.span());
+        poseidon_hash_span(serialized.span())
+        // let hashed = poseidon_hash_span(serialized.span());
 
-        let hash_state = PedersenTrait::new(0);
-        pedersen(0, hash_state.update_with(hashed).update_with(1).finalize())
+        // let hash_state = PedersenTrait::new(0);
+    // pedersen(0, hash_state.update_with(hashed).update_with(1).finalize())
     }
 }
 

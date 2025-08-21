@@ -2,7 +2,7 @@
 
 import { pad } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { StandardMerkleTree } from "@ericnordelo/strk-merkle-tree";
+import { SimpleMerkleTree, StandardMerkleTree } from "@ericnordelo/strk-merkle-tree";
 import { hashLeaf } from "./hash_leaf.js";
 import fs from "node:fs";
 
@@ -20,7 +20,7 @@ const main = async () => {
   }
   const snapshot = JSON.parse(fs.readFileSync(snapshotPath));
   const snapshotHashed = snapshot.snapshot.map((i) => {
-    return [hashLeaf(i, snapshot.claim_contract, snapshot.entrypoint)];
+    return hashLeaf(i, snapshot.claim_contract, snapshot.entrypoint);
   });
 
   const index = snapshot.snapshot.findIndex((i) => {
@@ -36,7 +36,10 @@ const main = async () => {
   console.log(index);
   console.log(indexHashed);
 
-  const tree = StandardMerkleTree.of(snapshotHashed, ["felt252"], {
+  // const tree = StandardMerkleTree.of(snapshotHashed, ["felt252"], {
+  //   sortLeaves: true,
+  // });
+  const tree = SimpleMerkleTree.of(snapshotHashed, {
     sortLeaves: true,
   });
   const proof = tree.getProof(indexHashed);
