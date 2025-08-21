@@ -15,7 +15,7 @@ const main = async () => {
   const account = privateKeyToAccount(pk0);
 
   const claim_contract_address =
-    "0x593dd47498149f98f589a972c947b581f2ab12585eeb1ee041b383ba3fe6974";
+    "0x53f7a7259044abbf8d8cf7f9987d9a1da3287c918c1cf996307ba8ba864193a";
   const entrypoint = selector.getSelectorFromName("claim_from_forwarder");
 
   const snapshot_serialized = snapshot.map((i) => {

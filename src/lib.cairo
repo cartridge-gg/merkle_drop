@@ -1,5 +1,6 @@
 pub mod consumer {
     pub mod example;
+    pub mod proxy;
 }
 
 pub mod forwarder {

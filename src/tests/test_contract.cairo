@@ -1,3 +1,4 @@
+use openzeppelin_upgrades::interface::{IUpgradeableDispatcher, IUpgradeableDispatcherTrait};
 use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
 use starknet::ContractAddress;
 use starknet::eth_address::EthAddress;
@@ -16,6 +17,24 @@ fn deploy_contract(name: ByteArray, calldata: @Array<felt252>) -> ContractAddres
     contract_address
 }
 
+fn deploy_contract_and_upgrade(
+    proxy: ByteArray, name: ByteArray, calldata: @Array<felt252>,
+) -> ContractAddress {
+    let proxy = declare(proxy).unwrap().contract_class();
+    let contract = declare(name).unwrap().contract_class();
+    let (contract_address, _) = proxy.deploy(@array![]).unwrap();
+
+    let proxy_disp = IUpgradeableDispatcher { contract_address };
+    proxy_disp.upgrade(*contract.class_hash);
+
+    starknet::syscalls::call_contract_syscall(
+        contract_address, selector!("initialize"), calldata.span(),
+    );
+
+    contract_address
+}
+
+
 fn setup() -> (IForwarderABIDispatcher, IClaimDispatcher) {
     let admin_address_felt: felt252 = ADMIN.into();
     let forwarder_address = deploy_contract(
@@ -23,9 +42,11 @@ fn setup() -> (IForwarderABIDispatcher, IClaimDispatcher) {
     );
     let forwarder_disp = IForwarderABIDispatcher { contract_address: forwarder_address };
 
-    let claim_contract_address = deploy_contract(
-        "ClaimContract", @array![forwarder_address.into()],
+    // make claim_contract_address deterministic
+    let claim_contract_address = deploy_contract_and_upgrade(
+        "ClaimContractProxy", "ClaimContract", @array![forwarder_address.into()],
     );
+
     let claim_disp = IClaimDispatcher { contract_address: claim_contract_address };
 
     println!("     forwarder_address: 0x{:x}", forwarder_disp.contract_address);
@@ -97,7 +118,7 @@ fn test__ETHEREUM_drop() {
         entrypoint: selector!("claim_from_forwarder"),
     };
 
-    let root = 0x04f62437709789fce6e111fb7aaecd04078136042ec81a0f53f32c8c7884bf2d;
+    let root = 0x019de87d774d09f2224622078499527edf4aa5ed00c7a8858aa7d30ecebbfee7;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
@@ -113,15 +134,15 @@ fn test__ETHEREUM_drop() {
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x042a27058a977b14bb033e5daf508a60ead1f22a5576c08899e8be4c81e39377,
-        0xb72259c3dbe23111ebb9b44fd713b0a313073c060352452802f89bef7fe284,
-        0x0796d0efba69110bb3542064454a0996bb685b08fbefb04d7d1b299a54edc292,
-        0x020126e1cd62542e792fc21ac81eb83fc0f4ced84f29e7102c7a6dacaef44eeb,
-        0x06aeaa92656e20a87e5ea4a535092665299e840e9f7c603bca4a77dc0163d405,
-        0x065bc9eafd4577564f986822bddeba913addac79e728b83005be3f7cdbf8cd06,
-        0x04e5d7d879c3bd35fbf47d89be62474783c19e019b6c10ce47a2ad417f92b274,
-        0x01695443d6ca9d90645139cd67f04ebbb0334be84b4b59e0e325ac710dac6413,
-        0x0daecad22c4c31fd0d5b7142b654469dcf969c861d9452ced9910864be9c14,
+        0x023bce5a12fbf63e57e6fac449daf28ab3dffa8a33a8760239cbcbdc7f2942ba,
+        0x04a7333f0452b4c247b6644d40668321e2518ff662f13c59c3ac251e200abb08,
+        0x03a00ff744b8c707c6d2d3954711ea9ab6d57eb354621a059e9933d11c1ee601,
+        0x0390a96315e83779890d720a65c06dca215ff73c4069b2eb3e51283727c67875,
+        0x04167089f6022f2532bf6dda89041f20c59c253b8d8175b4cd82384f1640309a,
+        0x05ff3b592f62e2ce7b74c91838a0a5e93072ddcdc4d1507dd06d8da64d603416,
+        0x03e73901a7b03974dbd851b2844f4d9e90cb09ed07e1b5247a8aaafb8183ac4b,
+        0x023df1a6e2290fd02746ddb4f532acde71884d62656e8e11fc898de7275d1128,
+        0x0112d9ba96008dc89ac84b09759ee62bbbf16485e319e9eb4d907b44d76c141f,
     ]
         .span();
 
@@ -145,7 +166,7 @@ fn test__ETHEREUM_drop() {
             Option::Some(signature),
         );
 
-    let balance = claim_disp.get_balance(recipient_address);
+    let balance = claim_disp.get_balance('TOKEN_A', recipient_address);
     assert!(balance == 5, "invalid recipient balance")
 }
 // #[test]
