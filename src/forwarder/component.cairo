@@ -88,9 +88,6 @@ pub mod ForwarderComponent {
             );
 
             let leaf_hash = LeafDataHashImpl::<LeafData<EthAddress>>::hash(@leaf_data);
-            println!("leaf_hash: 0x{:x}", leaf_hash);
-            println!("merkle_root: 0x{:x}", merkle_root);
-
             self.assert_leaf_not_consumed_and_consume(merkle_tree_key, leaf_hash);
             self.assert_valid_proof(proof, merkle_root, leaf_hash);
 

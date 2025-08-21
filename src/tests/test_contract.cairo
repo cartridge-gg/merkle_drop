@@ -10,6 +10,9 @@ const ADMIN: ContractAddress = 0x1111.try_into().unwrap();
 
 // pk: 0x420
 const ETH_ADDRESS: felt252 = 0x4884ABe82470adf54f4e19Fa39712384c05112be;
+const SN_ADDRESS: ContractAddress = 0x9aa528ac622ad7cf637e5b8226f465da1080c81a2daeb37a97ee6246ae2301
+    .try_into()
+    .unwrap();
 
 fn deploy_contract(name: ByteArray, calldata: @Array<felt252>) -> ContractAddress {
     let contract = declare(name).unwrap().contract_class();
@@ -49,8 +52,8 @@ fn setup() -> (IForwarderABIDispatcher, IClaimDispatcher) {
 
     let claim_disp = IClaimDispatcher { contract_address: claim_contract_address };
 
-    println!("     forwarder_address: 0x{:x}", forwarder_disp.contract_address);
-    println!("claim_contract_address: 0x{:x}", claim_disp.contract_address);
+    // println!("     forwarder_address: 0x{:x}", forwarder_disp.contract_address);
+    // println!("claim_contract_address: 0x{:x}", claim_disp.contract_address);
 
     (forwarder_disp, claim_disp)
 }
@@ -61,7 +64,7 @@ fn test_deploy() {
 }
 
 #[test]
-fn test___initialize_drop() {
+fn test__initialize_drop() {
     let (forwarder_disp, claim_disp) = setup();
 
     let key = MerkleTreeKey {
@@ -79,7 +82,7 @@ fn test___initialize_drop() {
 
 #[test]
 #[should_panic(expected: "merkle_drop: already initialized")]
-fn test___initialize_drop_cannot_reiint() {
+fn test__initialize_drop_cannot_reiint() {
     let (forwarder_disp, claim_disp) = setup();
 
     let key = MerkleTreeKey {
@@ -184,15 +187,10 @@ fn test__STARKNET_drop() {
     let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
     forwarder_disp.initialize_drop(key, root);
 
-    let recipient_address: ContractAddress =
-        0x9aa528ac622ad7cf637e5b8226f465da1080c81a2daeb37a97ee6246ae2301
-        .try_into()
-        .unwrap();
-
     let leaf_data = LeafData::<
         ContractAddress,
     > {
-        address: recipient_address,
+        address: SN_ADDRESS,
         claim_contract_address: key.claim_contract_address,
         entrypoint: key.entrypoint,
         data: array![
@@ -219,9 +217,104 @@ fn test__STARKNET_drop() {
     forwarder_disp
         .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
 
-    let balance_A = claim_disp.get_balance('TOKEN_A', recipient_address);
+    let balance_A = claim_disp.get_balance('TOKEN_A', SN_ADDRESS);
     assert!(balance_A == 20, "invalid recipient balance TOKEN_A")
-    let balance_B = claim_disp.get_balance('TOKEN_B', recipient_address);
+
+    let balance_B = claim_disp.get_balance('TOKEN_B', SN_ADDRESS);
     assert!(balance_B == 10, "invalid recipient balance TOKEN_B")
 }
 
+
+#[test]
+#[should_panic(expected: "merkle_drop: already consumed")]
+fn test__STARKNET_drop_cannot_claim_twice() {
+    let (forwarder_disp, claim_disp) = setup();
+
+    let key = MerkleTreeKey {
+        chain_id: 'STARKNET',
+        claim_contract_address: claim_disp.contract_address,
+        entrypoint: selector!("claim_from_forwarder_with_extra_data"),
+    };
+
+    let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
+    forwarder_disp.initialize_drop(key, root);
+
+    let leaf_data = LeafData::<
+        ContractAddress,
+    > {
+        address: SN_ADDRESS,
+        claim_contract_address: key.claim_contract_address,
+        entrypoint: key.entrypoint,
+        data: array![
+            20, 10, 20, 95, 231, 232, 323, 334, 393, 439, 460, 534, 537, 576, 704, 743, 808, 902,
+            922, 928, 931, 933, 949,
+        ],
+    };
+
+    let mut leaf_data_serialized = array![];
+    leaf_data.serialize(ref leaf_data_serialized);
+
+    let proof = array![
+        0x0713a9fbd467722c207f41269abd3542ea6d71f605c730bf88fb3ed20b00ad5b,
+        0x02aec2a0c5e96aaeffe2d674423574ad9c7b2c8ed29915b5f453f8aec06177f8,
+        0x62d2ea592cdce23fc6c02d0d99858cdd9d8857aa03cbe703613a8ffd3c1090,
+        0x04233a1040604b6262ea02d26eaf738fc846399f332ac1ddcfdde325ff98102c,
+        0x04fb444aa4c91df19432e7737956bba76dc69a8cf5520529946d6eb90f831bf1,
+        0xbdc9206817ac505bc65419c943fe8dec122d10051d515d8c681a3a5c1904c3,
+        0xca85167f27bae2b7251f45e75e3a435b4379dcff27df436d819a8abc6f94d1,
+        0x0623148f5a7eb3515b9da98e2d1345662f97192b1493466d521f959be39d86b0,
+    ]
+        .span();
+
+    forwarder_disp
+        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+
+    forwarder_disp
+        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+}
+
+
+#[test]
+#[should_panic(expected: "merkle_drop: invalid proof")]
+fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
+    let (forwarder_disp, claim_disp) = setup();
+
+    let key = MerkleTreeKey {
+        chain_id: 'STARKNET',
+        claim_contract_address: claim_disp.contract_address,
+        entrypoint: selector!("claim_from_forwarder_with_extra_data"),
+    };
+
+    let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
+    forwarder_disp.initialize_drop(key, root);
+
+    let leaf_data = LeafData::<
+        ContractAddress,
+    > {
+        address: SN_ADDRESS,
+        claim_contract_address: key.claim_contract_address,
+        entrypoint: key.entrypoint,
+        data: array![
+            20, 10, 20, 95, 231, 232, 323, 334, 393, 439, 460, 534, 537, 576, 704, 743, 808, 902,
+            922, 928, 931, 933, 949,
+        ],
+    };
+
+    let mut leaf_data_serialized = array![];
+    leaf_data.serialize(ref leaf_data_serialized);
+
+    let proof = array![
+        0x0713a9fbd467722c207f41269abd3542ea6d71f605c730bf88fb3ed20b00ad5b,
+        0x02aec2a0c5e96aaeffe2d674423574ad9c7b2c8ed29915b5f453f8aec06177f8,
+        0x62d2ea592cdce23fc6c02d0d99858cdd9d8857aa03cbe703613a8ffd3c1090,
+        // 0x04233a1040604b6262ea02d26eaf738fc846399f332ac1ddcfdde325ff98102c,
+        0x04fb444aa4c91df19432e7737956bba76dc69a8cf5520529946d6eb90f831bf1,
+        0xbdc9206817ac505bc65419c943fe8dec122d10051d515d8c681a3a5c1904c3,
+        0xca85167f27bae2b7251f45e75e3a435b4379dcff27df436d819a8abc6f94d1,
+        0x0623148f5a7eb3515b9da98e2d1345662f97192b1493466d521f959be39d86b0,
+    ]
+        .span();
+
+    forwarder_disp
+        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+}
