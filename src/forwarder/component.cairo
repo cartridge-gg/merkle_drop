@@ -112,6 +112,23 @@ pub mod ForwarderComponent {
             self.forward(merkle_tree_key, leaf_hash, recipient, data);
         }
 
+        fn is_consumed_ethereum(
+            self: @ComponentState<TContractState>,
+            merkle_tree_key: MerkleTreeKey,
+            leaf_data: LeafData<EthAddress>,
+        ) -> bool {
+            let leaf_hash = LeafDataHashImpl::<LeafData<EthAddress>>::hash(@leaf_data);
+            self.fallen_leaves_hashes.entry((merkle_tree_key, leaf_hash)).read()
+        }
+
+        fn is_consumed_starknet(
+            self: @ComponentState<TContractState>,
+            merkle_tree_key: MerkleTreeKey,
+            leaf_data: LeafData<ContractAddress>,
+        ) -> bool {
+            let leaf_hash = LeafDataHashImpl::<LeafData<ContractAddress>>::hash(@leaf_data);
+            self.fallen_leaves_hashes.entry((merkle_tree_key, leaf_hash)).read()
+        }
 
         //
         // Helpers

@@ -19,6 +19,7 @@ pub trait IForwarderABI<T> {
         recipient: Option<ContractAddress>,
         eth_signature: Option<EthereumSignature>,
     );
+    fn is_consumed(self: @T, merkle_tree_key: MerkleTreeKey, leaf_data: Span<felt252>) -> bool;
     fn get_merkle_root(ref self: T, merkle_tree_key: MerkleTreeKey) -> felt252;
 }
 
@@ -34,6 +35,7 @@ pub trait IForwarder<T> {
         recipient: Option<ContractAddress>,
         eth_signature: Option<EthereumSignature>,
     );
+    fn is_consumed(self: @T, merkle_tree_key: MerkleTreeKey, leaf_data: Span<felt252>) -> bool;
 }
 
 #[starknet::contract]
@@ -149,6 +151,23 @@ mod Forwarder {
                     .verify_and_forward_ethereum(
                         merkle_tree_key, proof, leaf_data, recipient, eth_signature,
                     );
+            } else {
+                panic!("unsupported chain_id")
+            }
+        }
+
+        fn is_consumed(
+            self: @ContractState, merkle_tree_key: MerkleTreeKey, leaf_data: Span<felt252>,
+        ) -> bool {
+            let mut leaf_data = leaf_data;
+            if merkle_tree_key.chain_id == 'STARKNET' {
+                let leaf_data = Serde::<LeafData<ContractAddress>>::deserialize(ref leaf_data)
+                    .expect('invalid sn leaf_data');
+                self.forwarder.is_consumed_starknet(merkle_tree_key, leaf_data)
+            } else if merkle_tree_key.chain_id == 'ETHEREUM' {
+                let leaf_data = Serde::<LeafData<EthAddress>>::deserialize(ref leaf_data)
+                    .expect('invalid eth leaf_data');
+                self.forwarder.is_consumed_ethereum(merkle_tree_key, leaf_data)
             } else {
                 panic!("unsupported chain_id")
             }
