@@ -4,15 +4,10 @@ use starknet::ContractAddress;
 pub trait IClaim<T> {
     fn initialize(ref self: T, forwarder_address: ContractAddress);
     fn get_balance(self: @T, key: felt252, address: ContractAddress) -> u32;
-    fn claim_from_forwarder(ref self: T, recipient: ContractAddress, leaf_data: Span<felt252>);
+    fn claim_from_forwarder(ref self: T, recipient: ContractAddress, token_ids: Span<felt252>);
     fn claim_from_forwarder_with_extra_data(
         ref self: T, recipient: ContractAddress, leaf_data: Span<felt252>,
     );
-}
-
-#[derive(Drop, Copy, Clone, Serde, PartialEq)]
-pub struct LeafData {
-    pub token_ids: Span<felt252>,
 }
 
 #[derive(Drop, Copy, Clone, Serde, PartialEq)]
@@ -51,17 +46,13 @@ mod ClaimContract {
         }
 
         fn claim_from_forwarder(
-            ref self: ContractState, recipient: ContractAddress, leaf_data: Span<felt252>,
+            ref self: ContractState, recipient: ContractAddress, token_ids: Span<felt252>,
         ) {
             // MUST check caller is forwarder
             self.assert_caller_is_forwarder();
 
-            // deserialize leaf_data
-            let mut leaf_data = leaf_data;
-            let data = Serde::<LeafData>::deserialize(ref leaf_data).unwrap();
-
             // then use recipient / data
-            let amount = data.token_ids.len();
+            let amount = token_ids.len();
 
             // increase balance
             let balance = self.balance.entry(('TOKEN_A', recipient)).read();
