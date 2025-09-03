@@ -4,7 +4,7 @@ use starknet::ContractAddress;
 use starknet::eth_address::EthAddress;
 use crate::consumer::example::{IClaimDispatcher, IClaimDispatcherTrait};
 use crate::forwarder::{IForwarderABIDispatcher, IForwarderABIDispatcherTrait};
-use crate::types::{EthereumSignature, LeafData, MerkleTreeKey};
+use crate::types::{EthereumSignature, LeafData, LeafDataHashImpl, MerkleTreeKey};
 
 const ADMIN: ContractAddress = 0x1111.try_into().unwrap();
 
@@ -133,6 +133,9 @@ fn test__ETHEREUM_drop() {
         data: array![8, 21, 207, 295, 472, 570, 900, 943, 974],
     };
 
+    let hash = LeafDataHashImpl::<LeafData<EthAddress>>::hash(@leaf_data);
+    assert!(forwarder_disp.is_consumed(key, hash) == false, "invalid is_consumed");
+
     let mut leaf_data_serialized = array![];
     leaf_data.serialize(ref leaf_data_serialized);
 
@@ -171,8 +174,8 @@ fn test__ETHEREUM_drop() {
 
     let balance = claim_disp.get_balance('TOKEN_A', recipient_address);
     assert!(balance == 8, "invalid recipient balance")
+    assert!(forwarder_disp.is_consumed(key, hash) == true, "invalid is_consumed");
 }
-
 
 #[test]
 fn test__STARKNET_drop() {
@@ -199,6 +202,9 @@ fn test__STARKNET_drop() {
         ],
     };
 
+    let hash = LeafDataHashImpl::<LeafData<ContractAddress>>::hash(@leaf_data);
+    assert!(forwarder_disp.is_consumed(key, hash) == false, "invalid is_consumed");
+
     let mut leaf_data_serialized = array![];
     leaf_data.serialize(ref leaf_data_serialized);
 
@@ -222,6 +228,8 @@ fn test__STARKNET_drop() {
 
     let balance_B = claim_disp.get_balance('TOKEN_B', SN_ADDRESS);
     assert!(balance_B == 10, "invalid recipient balance TOKEN_B")
+
+    assert!(forwarder_disp.is_consumed(key, hash) == true, "invalid is_consumed");
 }
 
 
