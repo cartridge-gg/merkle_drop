@@ -19,6 +19,7 @@ pub trait IForwarderABI<T> {
         recipient: Option<ContractAddress>,
         eth_signature: Option<EthereumSignature>,
     );
+    fn is_consumed(self: @T, merkle_tree_key: MerkleTreeKey, leaf_hash: felt252) -> bool;
     fn get_merkle_root(ref self: T, merkle_tree_key: MerkleTreeKey) -> felt252;
 }
 
@@ -34,6 +35,7 @@ pub trait IForwarder<T> {
         recipient: Option<ContractAddress>,
         eth_signature: Option<EthereumSignature>,
     );
+    fn is_consumed(self: @T, merkle_tree_key: MerkleTreeKey, leaf_hash: felt252) -> bool;
 }
 
 #[starknet::contract]
@@ -123,6 +125,12 @@ mod Forwarder {
         ) {
             // self.accesscontrol.assert_only_role(FORWARDER_ROLE);
             self.forwarder.initialize_drop(merkle_tree_key, merkle_tree_root);
+        }
+
+        fn is_consumed(
+            self: @ContractState, merkle_tree_key: MerkleTreeKey, leaf_hash: felt252,
+        ) -> bool {
+            self.forwarder.is_consumed(merkle_tree_key, leaf_hash)
         }
 
         fn verify_and_forward(

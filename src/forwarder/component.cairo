@@ -112,6 +112,13 @@ pub mod ForwarderComponent {
             self.forward(merkle_tree_key, leaf_hash, recipient, data);
         }
 
+        fn is_consumed(
+            self: @ComponentState<TContractState>,
+            merkle_tree_key: MerkleTreeKey,
+            leaf_hash: felt252,
+        ) -> bool {
+            self.fallen_leaves_hashes.entry((merkle_tree_key, leaf_hash)).read()
+        }
 
         //
         // Helpers
