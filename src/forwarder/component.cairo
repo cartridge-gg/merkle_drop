@@ -104,7 +104,7 @@ pub mod ForwarderComponent {
             proof: Span<felt252>,
             leaf_data: LeafData<ContractAddress>,
             recipient: ContractAddress,
-            sn_signature: Array<felt252>,
+            sn_signature: Span<felt252>,
         ) {
             let merkle_root = self.assert_valid_merkle_root_and_get(merkle_tree_key);
 
@@ -116,7 +116,7 @@ pub mod ForwarderComponent {
             let message = Message { recipient: recipient };
             let hash = message.get_message_hash(owner);
             let is_valid_signature_felt = ISRC6Dispatcher { contract_address: owner }
-                .is_valid_signature(hash, sn_signature);
+                .is_valid_signature(hash, sn_signature.into());
 
             let is_valid_signature = is_valid_signature_felt == starknet::VALIDATED
                 || is_valid_signature_felt == 1;

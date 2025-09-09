@@ -20,7 +20,7 @@ pub mod types {
 
     pub use leaf::{LeadDataHasher, LeafData, LeafDataHashImpl};
     pub use merkle::MerkleTreeKey;
-    pub use signature::EthereumSignature;
+    pub use signature::{EthereumSignature, Signature};
 }
 
 
