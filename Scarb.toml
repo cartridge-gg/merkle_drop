@@ -11,11 +11,13 @@ test = "snforge test"
 [dependencies]
 starknet = "2.12.0"
 
+openzeppelin_account = "2.0.0"
 openzeppelin_access = "2.0.0"
 openzeppelin_introspection = "2.0.0"
 openzeppelin_merkle_tree = "2.0.0"
 openzeppelin_upgrades = "2.0.0"
 openzeppelin_security = "2.0.0"
+openzeppelin_utils = "2.0.0"
 
 alexandria_bytes = "0.6.0"
 
@@ -31,3 +33,8 @@ allow-prebuilt-plugins = ["snforge_std"]
 [profile.dev.cairo]
 unstable-add-statements-code-locations-debug-info = true
 unstable-add-statements-functions-debug-info = true
+
+[[target.starknet-contract]]
+sierra = true
+casm = true
+

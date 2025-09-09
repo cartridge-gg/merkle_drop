@@ -18,6 +18,7 @@ pub trait IForwarderABI<T> {
         leaf_data: Span<felt252>,
         recipient: Option<ContractAddress>,
         eth_signature: Option<EthereumSignature>,
+        sn_signature: Option<Array<felt252>>,
     );
     fn get_merkle_root(ref self: T, merkle_tree_key: MerkleTreeKey) -> felt252;
 }
@@ -33,6 +34,7 @@ pub trait IForwarder<T> {
         leaf_data: Span<felt252>,
         recipient: Option<ContractAddress>,
         eth_signature: Option<EthereumSignature>,
+        sn_signature: Option<Array<felt252>>,
     );
 }
 
@@ -132,13 +134,21 @@ mod Forwarder {
             leaf_data: Span<felt252>,
             recipient: Option<ContractAddress>,
             eth_signature: Option<EthereumSignature>,
+            sn_signature: Option<Array<felt252>>,
         ) {
             let mut leaf_data = leaf_data;
 
             if merkle_tree_key.chain_id == 'STARKNET' {
                 let leaf_data = Serde::<LeafData<ContractAddress>>::deserialize(ref leaf_data)
                     .expect('invalid sn leaf_data');
-                self.forwarder.verify_and_forward_starknet(merkle_tree_key, proof, leaf_data);
+                let recipient = recipient.expect('no recipient');
+                let sn_signature = sn_signature.expect('no sn_signature');
+
+                self
+                    .forwarder
+                    .verify_and_forward_starknet(
+                        merkle_tree_key, proof, leaf_data, recipient, sn_signature,
+                    );
             } else if merkle_tree_key.chain_id == 'ETHEREUM' {
                 let leaf_data = Serde::<LeafData<EthAddress>>::deserialize(ref leaf_data)
                     .expect('invalid eth leaf_data');
