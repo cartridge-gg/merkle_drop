@@ -113,8 +113,6 @@ pub mod ForwarderComponent {
             self.assert_valid_proof(proof, merkle_root, leaf_hash);
 
             let owner = leaf_data.address;
-            assert!(owner == starknet::get_caller_address(), "Not owner");
-
             let message = Message { recipient: recipient };
             let hash = message.get_message_hash(owner);
             let is_valid_signature_felt = ISRC6Dispatcher { contract_address: owner }
