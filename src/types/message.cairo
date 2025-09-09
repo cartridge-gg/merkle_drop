@@ -3,7 +3,8 @@ use core::poseidon::PoseidonTrait;
 use openzeppelin_utils::snip12::{SNIP12Metadata, StructHash};
 use starknet::ContractAddress;
 
-const MESSAGE_TYPE_HASH: felt252 = selector!("\"Message\"(\"Claim on starknet with\":\"ContractAddress\")");
+const MESSAGE_TYPE_HASH: felt252 = 0x1e6faf7a678b9a358146d73aa3a05833339056c80ee3ca762186b7261f3a283;
+//const MESSAGE_TYPE_HASH: felt252 = selector!("\"Message\"(\"recipient\":\"ContractAddress\")");
 
 #[derive(Copy, Drop, Hash)]
 pub struct Message {
@@ -19,7 +20,7 @@ impl StructHashImpl of StructHash<Message> {
 
 impl SNIP12MetadataImpl of SNIP12Metadata {
     fn name() -> felt252 {
-        'Merkle Drop Claim'
+        'Merkle Drop'
     }
 
     fn version() -> felt252 {
