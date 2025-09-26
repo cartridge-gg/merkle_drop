@@ -5,7 +5,7 @@
 mod ClaimContractProxy {
     use openzeppelin_upgrades::UpgradeableComponent;
     use openzeppelin_upgrades::interface::IUpgradeable;
-    use starknet::{ClassHash, ContractAddress};
+    use starknet::{ClassHash};
 
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 

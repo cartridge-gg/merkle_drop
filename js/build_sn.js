@@ -37,7 +37,7 @@ const main = async () => {
     const token_ids = i[1];
     const amount_A = token_ids.length;
     const amount_B = Math.ceil(token_ids.length / 2);
-    return [i[0], CallData.compile([amount_A, amount_B, token_ids])];
+    return [i[0], "0", CallData.compile([amount_A, amount_B, token_ids])];
   });
 
   fs.writeFileSync(

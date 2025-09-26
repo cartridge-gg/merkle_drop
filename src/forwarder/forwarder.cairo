@@ -38,6 +38,7 @@ pub trait IForwarder<T> {
 
 #[starknet::contract]
 mod Forwarder {
+    use PausableComponent::InternalTrait;
     use openzeppelin_access::accesscontrol::{AccessControlComponent, DEFAULT_ADMIN_ROLE};
     use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin_security::pausable::PausableComponent;
@@ -122,6 +123,7 @@ mod Forwarder {
             ref self: ContractState, merkle_tree_key: MerkleTreeKey, merkle_tree_root: felt252,
         ) {
             // self.accesscontrol.assert_only_role(FORWARDER_ROLE);
+            self.pausable.assert_not_paused();
             self.forwarder.initialize_drop(merkle_tree_key, merkle_tree_root);
         }
 
@@ -133,6 +135,8 @@ mod Forwarder {
             recipient: Option<ContractAddress>,
             eth_signature: Option<EthereumSignature>,
         ) {
+            self.pausable.assert_not_paused();
+
             let mut leaf_data = leaf_data;
 
             if merkle_tree_key.chain_id == 'STARKNET' {
@@ -150,7 +154,7 @@ mod Forwarder {
                         merkle_tree_key, proof, leaf_data, recipient, eth_signature,
                     );
             } else {
-                panic!("unsupported chain_id")
+                assert!(false, "unsupported chain_id")
             }
         }
     }
