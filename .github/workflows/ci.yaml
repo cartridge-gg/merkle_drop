@@ -1,0 +1,41 @@
+name: ci
+on: push
+env:
+  CARGO_TERM_COLOR: always
+  SCARB_VERSION: 2.12.2
+jobs:
+  check-cairo:
+    runs-on: ubuntu-latest
+    name: Check merkle_drop format
+    steps:
+      - uses: actions/checkout@v4
+      - uses: software-mansion/setup-scarb@v1
+        with:
+           scarb-version: ${{ env.SCARB_VERSION }}
+      - name: Format
+        run: scarb fmt --check
+
+  build-cairo:
+    needs: check-cairo
+    runs-on: ubuntu-latest
+    name: Build merkle_drop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: software-mansion/setup-scarb@v1
+        with:
+           scarb-version: ${{ env.SCARB_VERSION }}
+      - name: Build
+        run: scarb build
+
+  test-cairo:
+     needs: [check-cairo, build-cairo]
+     runs-on: ubuntu-latest
+     name: Test merkle_drop
+     steps:
+      - uses: actions/checkout@v4
+      - uses: software-mansion/setup-scarb@v1
+        with:
+           scarb-version: ${{ env.SCARB_VERSION }}
+      - uses: foundry-rs/setup-snfoundry@v3
+      - name: Test
+        run: scarb test

@@ -121,13 +121,16 @@ fn test__ETHEREUM_drop() {
         entrypoint: selector!("claim_from_forwarder"),
     };
 
-    let root = 0x078a4171d7a74082438af64eb26ed803f136698a0cd4f7c5ff80a057e042b823;
+    // println!("claim_disp.contract_address: 0x{:x}", claim_disp.contract_address);
+
+    let root = 0x2f677e32bf42f63aaa944c220b0664594fef1ecf440f07b17595d7443bcd68;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
         EthAddress,
     > {
         address: ETH_ADDRESS.try_into().unwrap(),
+        index: 0,
         claim_contract_address: key.claim_contract_address,
         entrypoint: key.entrypoint,
         data: array![8, 21, 207, 295, 472, 570, 900, 943, 974],
@@ -140,15 +143,15 @@ fn test__ETHEREUM_drop() {
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x049efe7c451054b64079a86c6f0df54aafb4b5e7cc0a9fc98fb6bd5de2280ad5,
-        0x04bcafe857270465726cb2895f4da727446962660bbe1dae46555cd3f64bd17f,
-        0x074efaae4e4c3b9bdc64c97a0e4a3848de7aaaf47d4be40b159303af8fef3e2d,
-        0x03f622fa1f1329d1453bde872c5c6bb2f6a0fbc94fc811feb5ac63c0306c9df5,
-        0x07b682376744cde36f6fd98286e4cee873beb8c5890fa05590edf79171cf8c32,
-        0x03dc286e0fc2508659a71773faa6c79ae9b6195319cce70ebb51e456b36aac40,
-        0x05a9eac042e7f9f20cbed2da69631f5a4dc2138f22b5feb0a94524b490becbcb,
-        0x0768e0e76a2be560fb65cc228ad05ddaa84879d499793063f35ffe57e088d516,
-        0x03daf8d4d1e545ab1c3f275339af1b80a38281bdc626a5cedfdb61ee486a002c,
+        0x035a5e4d7ca1d53bf4e148de2adf32f77fb81746a77e64b4432fa501a7275dd6,
+        0x07139c81f140c0b0d177e00d12393d430a4e09bc94589a307418bc8adfbc2cd0,
+        0x0687db36c7c71f874569918fe929b2465b98dad234925fbc3fe08e1f240ea1cf,
+        0x06109e68a53350228595b86d39c4aee537c838edbb351d7592fea8cd38e5e7c6,
+        0x05cddc3065840dcd070214641880b91a916a0c8c3d45ec969595200440518f20,
+        0x01c1cd2751dc4613574aaf642c4084c60d285c8764c0c9bc216cc256dcb33973,
+        0x06aff68ea70c70044170b7069df98fffe3ba1f35c9b0a5852a80a52915bb5456,
+        0x064139087092b6f0917b292d1fb075a8ad220faa8c995c9286e88c628caa47bf,
+        0x07ceca3c8a14d4c3b542f5a1ef154d2c33bbcf25f43e2883790359f06c2dd6ed,
     ]
         .span();
 
@@ -187,13 +190,14 @@ fn test__STARKNET_drop() {
         entrypoint: selector!("claim_from_forwarder_with_extra_data"),
     };
 
-    let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
+    let root = 0x012009b5d429397c4c5bd66e81cb7ca972069e3e528802f7f2a1027aface1c47;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
         ContractAddress,
     > {
         address: SN_ADDRESS,
+        index: 0,
         claim_contract_address: key.claim_contract_address,
         entrypoint: key.entrypoint,
         data: array![
@@ -209,14 +213,15 @@ fn test__STARKNET_drop() {
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x0713a9fbd467722c207f41269abd3542ea6d71f605c730bf88fb3ed20b00ad5b,
-        0x02aec2a0c5e96aaeffe2d674423574ad9c7b2c8ed29915b5f453f8aec06177f8,
-        0x62d2ea592cdce23fc6c02d0d99858cdd9d8857aa03cbe703613a8ffd3c1090,
-        0x04233a1040604b6262ea02d26eaf738fc846399f332ac1ddcfdde325ff98102c,
-        0x04fb444aa4c91df19432e7737956bba76dc69a8cf5520529946d6eb90f831bf1,
-        0xbdc9206817ac505bc65419c943fe8dec122d10051d515d8c681a3a5c1904c3,
-        0xca85167f27bae2b7251f45e75e3a435b4379dcff27df436d819a8abc6f94d1,
-        0x0623148f5a7eb3515b9da98e2d1345662f97192b1493466d521f959be39d86b0,
+        0x04af246428fbaf1019b4d04075f9697c03386a72a9f596b80e75a6a050ed708c,
+        0x07623c754e5d16937b7682ca5d152800a977bb2c3b82b8f8399f1bacaf60162d,
+        0x06ab52049c21b5d9c3e38efeeb8d8d6160d319d2221d830cb57e51f205cdf5e4,
+        0x350e7c38dbe68cf213f572c97966a1de478d89676b6e48d6d9fe07a6ea578a,
+        0x0755fcf1e30fe08a993505b9919e6c3a1052f8abfb30d2e85e3262b096bb512b,
+        0x04540948ddf85ecc7b9bbcd8a7733c5d18c7e8cb4de309e6bda6aabd34a2b40f,
+        0x045191305a4234959933d9e3f0b8b16f058c0f8ce85799d5a9205cb7277ebce9,
+        0x76bdb97da512de9ce37e8f7aa33460b38d3d621430f835621c241f516d2380,
+        0x04b428c3a4997aa3da035cd84cc3030ffa29479529317e24978eda4eccabbe88,
     ]
         .span();
 
@@ -244,13 +249,14 @@ fn test__STARKNET_drop_cannot_claim_twice() {
         entrypoint: selector!("claim_from_forwarder_with_extra_data"),
     };
 
-    let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
+    let root = 0x012009b5d429397c4c5bd66e81cb7ca972069e3e528802f7f2a1027aface1c47;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
         ContractAddress,
     > {
         address: SN_ADDRESS,
+        index: 0,
         claim_contract_address: key.claim_contract_address,
         entrypoint: key.entrypoint,
         data: array![
@@ -263,14 +269,15 @@ fn test__STARKNET_drop_cannot_claim_twice() {
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x0713a9fbd467722c207f41269abd3542ea6d71f605c730bf88fb3ed20b00ad5b,
-        0x02aec2a0c5e96aaeffe2d674423574ad9c7b2c8ed29915b5f453f8aec06177f8,
-        0x62d2ea592cdce23fc6c02d0d99858cdd9d8857aa03cbe703613a8ffd3c1090,
-        0x04233a1040604b6262ea02d26eaf738fc846399f332ac1ddcfdde325ff98102c,
-        0x04fb444aa4c91df19432e7737956bba76dc69a8cf5520529946d6eb90f831bf1,
-        0xbdc9206817ac505bc65419c943fe8dec122d10051d515d8c681a3a5c1904c3,
-        0xca85167f27bae2b7251f45e75e3a435b4379dcff27df436d819a8abc6f94d1,
-        0x0623148f5a7eb3515b9da98e2d1345662f97192b1493466d521f959be39d86b0,
+        0x04af246428fbaf1019b4d04075f9697c03386a72a9f596b80e75a6a050ed708c,
+        0x07623c754e5d16937b7682ca5d152800a977bb2c3b82b8f8399f1bacaf60162d,
+        0x06ab52049c21b5d9c3e38efeeb8d8d6160d319d2221d830cb57e51f205cdf5e4,
+        0x350e7c38dbe68cf213f572c97966a1de478d89676b6e48d6d9fe07a6ea578a,
+        0x0755fcf1e30fe08a993505b9919e6c3a1052f8abfb30d2e85e3262b096bb512b,
+        0x04540948ddf85ecc7b9bbcd8a7733c5d18c7e8cb4de309e6bda6aabd34a2b40f,
+        0x045191305a4234959933d9e3f0b8b16f058c0f8ce85799d5a9205cb7277ebce9,
+        0x76bdb97da512de9ce37e8f7aa33460b38d3d621430f835621c241f516d2380,
+        0x04b428c3a4997aa3da035cd84cc3030ffa29479529317e24978eda4eccabbe88,
     ]
         .span();
 
@@ -293,13 +300,14 @@ fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
         entrypoint: selector!("claim_from_forwarder_with_extra_data"),
     };
 
-    let root = 0x03d6e082642d2a98b04998020c24e993fec512d45e8e2c6738bf0c71998b39b6;
+    let root = 0x012009b5d429397c4c5bd66e81cb7ca972069e3e528802f7f2a1027aface1c47;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
         ContractAddress,
     > {
         address: SN_ADDRESS,
+        index: 0,
         claim_contract_address: key.claim_contract_address,
         entrypoint: key.entrypoint,
         data: array![
@@ -312,17 +320,119 @@ fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x0713a9fbd467722c207f41269abd3542ea6d71f605c730bf88fb3ed20b00ad5b,
-        0x02aec2a0c5e96aaeffe2d674423574ad9c7b2c8ed29915b5f453f8aec06177f8,
-        0x62d2ea592cdce23fc6c02d0d99858cdd9d8857aa03cbe703613a8ffd3c1090,
-        // 0x04233a1040604b6262ea02d26eaf738fc846399f332ac1ddcfdde325ff98102c,
-        0x04fb444aa4c91df19432e7737956bba76dc69a8cf5520529946d6eb90f831bf1,
-        0xbdc9206817ac505bc65419c943fe8dec122d10051d515d8c681a3a5c1904c3,
-        0xca85167f27bae2b7251f45e75e3a435b4379dcff27df436d819a8abc6f94d1,
-        0x0623148f5a7eb3515b9da98e2d1345662f97192b1493466d521f959be39d86b0,
+        0x04af246428fbaf1019b4d04075f9697c03386a72a9f596b80e75a6a050ed708c,
+        0x07623c754e5d16937b7682ca5d152800a977bb2c3b82b8f8399f1bacaf60162d,
+        0x06ab52049c21b5d9c3e38efeeb8d8d6160d319d2221d830cb57e51f205cdf5e4,
+        0x350e7c38dbe68cf213f572c97966a1de478d89676b6e48d6d9fe07a6ea578a,
+        0x0755fcf1e30fe08a993505b9919e6c3a1052f8abfb30d2e85e3262b096bb512b,
+        0x04540948ddf85ecc7b9bbcd8a7733c5d18c7e8cb4de309e6bda6aabd34a2b40f,
+        // 0x045191305a4234959933d9e3f0b8b16f058c0f8ce85799d5a9205cb7277ebce9,
+        0x76bdb97da512de9ce37e8f7aa33460b38d3d621430f835621c241f516d2380,
+        0x04b428c3a4997aa3da035cd84cc3030ffa29479529317e24978eda4eccabbe88,
     ]
         .span();
 
     forwarder_disp
         .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+}
+
+
+#[test]
+fn test__ETHEREUM_split_drop() {
+    let (forwarder_disp, claim_disp) = setup();
+
+    let key = MerkleTreeKey {
+        chain_id: 'ETHEREUM',
+        claim_contract_address: claim_disp.contract_address,
+        entrypoint: selector!("claim_from_forwarder"),
+    };
+
+    let root = 0x068807b1aa01b3add91a567648a08cdb2b572c16bab197b962bcd53d5d8a463a;
+    forwarder_disp.initialize_drop(key, root);
+
+    let leaf_data_0 = LeafData::<
+        EthAddress,
+    > {
+        address: ETH_ADDRESS.try_into().unwrap(),
+        index: 0,
+        claim_contract_address: key.claim_contract_address,
+        entrypoint: key.entrypoint,
+        data: array![5, 21, 207, 295, 472, 570],
+    };
+    let leaf_data_1 = LeafData::<
+        EthAddress,
+    > {
+        address: ETH_ADDRESS.try_into().unwrap(),
+        index: 1,
+        claim_contract_address: key.claim_contract_address,
+        entrypoint: key.entrypoint,
+        data: array![3, 900, 943, 974],
+    };
+
+    let mut leaf_data_0_serialized = array![];
+    leaf_data_0.serialize(ref leaf_data_0_serialized);
+
+    let mut leaf_data_1_serialized = array![];
+    leaf_data_1.serialize(ref leaf_data_1_serialized);
+
+    let proof_0 = array![
+        0x03d754b5a72d7a2ead1af45bdf6224371778af50159c3abc3751b331f3ea78b1,
+        0x048db58af063baebac941e39ea6bb9bf1f0607d127a98eaf6d44f9bfabcd99c6,
+        0x05f3ae9b50767ae195397620a9673cfff112e327ad52b66898b02a6e598059a1,
+        0x0347652e426887551be3b9e07576fcd88fe478cfa0ff7f6a21d7500fed56ae34,
+        0x023640dc81de140cb10b1eed5a134804133afd32000b6e3a20486d5f6d33d1,
+        0x027b800e36f504b1bd2714b010c4e14e533ea0c4a6213159afb212459d6f67ae,
+        0x07e49c11119e233e03f6f0393082526e55a8c8978503d089f06889477f48947a,
+        0x0388a0971974410925d587ca417b2ab7fecafcca521fbccebaaf76de6dec4485,
+        0x693d03da533577a268d488f8c548c909ab0bae49b296164ecee865124c517b,
+    ]
+        .span();
+
+    let proof_1 = array![
+        0x02c99f99afa0d5a643534a57824af47934570875126ff7ac9f0c000557000de8,
+        0x048a26ff1a7f9e350e9dfa96e154b4fb0147d171ae39337b0969f7d80d4f6c76,
+        0x04fa5ad4bf20c9c502da6898e266ee27682242300732bf5b954bb8d51c693d86,
+        0x06a9412b73f28a0f753dd34e88171320a594320a3cb6eb43cfafb1cb37577f86,
+        0x0189f5a4589b954fa7fa124b2b2aac69ed0331946a9cca67fad55e6924058996,
+        0x063dbab8da3439c3d14b3cc79a137ee9fdbc10348c271d915226921d6a702369,
+        0x07e49c11119e233e03f6f0393082526e55a8c8978503d089f06889477f48947a,
+        0x0388a0971974410925d587ca417b2ab7fecafcca521fbccebaaf76de6dec4485,
+        0x693d03da533577a268d488f8c548c909ab0bae49b296164ecee865124c517b,
+    ]
+        .span();
+
+    let recipient_address: ContractAddress =
+        0x7db9cc4a5e5485becbde0c40e71af59d72c543dea4cdeddf3c54ba03fdf14eb
+        .try_into()
+        .unwrap();
+
+    let signature = EthereumSignature {
+        v: 28,
+        r: 0x8a616cce850f16086b7f189ca3075e730cc8e3c891adb3ce6ff32e2ae5441fa4,
+        s: 0x20b6bd7126554394b4d9ebc9b57f95aa21f0d84a1211499d5bc6ec4faad266e3,
+    };
+
+    forwarder_disp
+        .verify_and_forward(
+            key,
+            proof_0,
+            leaf_data_0_serialized.span(),
+            Option::Some(recipient_address),
+            Option::Some(signature),
+        );
+
+    let balance = claim_disp.get_balance('TOKEN_A', recipient_address);
+    assert!(balance == 5, "invalid recipient balance")
+
+    forwarder_disp
+        .verify_and_forward(
+            key,
+            proof_1,
+            leaf_data_1_serialized.span(),
+            Option::Some(recipient_address),
+            Option::Some(signature),
+        );
+
+    let balance = claim_disp.get_balance('TOKEN_A', recipient_address);
+    assert!(balance == 8, "invalid recipient balance")
 }

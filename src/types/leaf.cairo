@@ -10,6 +10,7 @@ pub trait LeadDataHasher<T, +Serde<T>> {
 #[derive(Debug, Clone, Drop, Serde)]
 pub struct LeafData<T> {
     pub address: T,
+    pub index: u32,
     pub claim_contract_address: ContractAddress,
     pub entrypoint: felt252,
     pub data: Array<felt252>,

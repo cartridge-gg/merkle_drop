@@ -13,6 +13,9 @@ const account = privateKeyToAccount(pk0);
 const main = async () => {
   const snapshotPath = process.argv[2];
   const address = process.argv[3] || account.address;
+  const claimIndex = process.argv[4] || 0;
+
+  console.log("address: ", address)
 
   if (!snapshotPath) {
     console.log("missing arg[0] snapshot_path");
@@ -24,7 +27,7 @@ const main = async () => {
   });
 
   const index = snapshot.snapshot.findIndex((i) => {
-    return BigInt(i[0]) === BigInt(address);
+    return BigInt(i[0]) === BigInt(address) && BigInt(i[1]) === BigInt(claimIndex);
   });
   const found = snapshot.snapshot[index];
 
