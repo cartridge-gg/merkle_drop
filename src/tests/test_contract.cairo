@@ -71,6 +71,7 @@ fn test__initialize_drop() {
         chain_id: 'ETHEREUM',
         claim_contract_address: claim_disp.contract_address,
         entrypoint: selector!("claim_from_forwarder"),
+        salt: 0x123,
     };
 
     let init_root = 0x123;
@@ -89,6 +90,7 @@ fn test__initialize_drop_cannot_reiint() {
         chain_id: 'ETHEREUM',
         claim_contract_address: claim_disp.contract_address,
         entrypoint: selector!("claim_from_forwarder"),
+        salt: 0x123,
     };
 
     let init_root = 0x123;
@@ -119,6 +121,7 @@ fn test__ETHEREUM_drop() {
         chain_id: 'ETHEREUM',
         claim_contract_address: claim_disp.contract_address,
         entrypoint: selector!("claim_from_forwarder"),
+        salt: 0x123,
     };
 
     // println!("claim_disp.contract_address: 0x{:x}", claim_disp.contract_address);
@@ -188,6 +191,7 @@ fn test__STARKNET_drop() {
         chain_id: 'STARKNET',
         claim_contract_address: claim_disp.contract_address,
         entrypoint: selector!("claim_from_forwarder_with_extra_data"),
+        salt: 0x123,
     };
 
     let root = 0x012009b5d429397c4c5bd66e81cb7ca972069e3e528802f7f2a1027aface1c47;
@@ -247,6 +251,7 @@ fn test__STARKNET_drop_cannot_claim_twice() {
         chain_id: 'STARKNET',
         claim_contract_address: claim_disp.contract_address,
         entrypoint: selector!("claim_from_forwarder_with_extra_data"),
+        salt: 0x123,
     };
 
     let root = 0x012009b5d429397c4c5bd66e81cb7ca972069e3e528802f7f2a1027aface1c47;
@@ -298,6 +303,7 @@ fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
         chain_id: 'STARKNET',
         claim_contract_address: claim_disp.contract_address,
         entrypoint: selector!("claim_from_forwarder_with_extra_data"),
+        salt: 0x123,
     };
 
     let root = 0x012009b5d429397c4c5bd66e81cb7ca972069e3e528802f7f2a1027aface1c47;
