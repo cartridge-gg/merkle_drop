@@ -15,11 +15,12 @@ pub mod forwarder {
 pub mod types {
     pub mod leaf;
     pub mod merkle;
+    pub mod message;
     pub mod signature;
 
     pub use leaf::{LeadDataHasher, LeafData, LeafDataHashImpl};
     pub use merkle::MerkleTreeKey;
-    pub use signature::EthereumSignature;
+    pub use signature::{EthereumSignature, Signature};
 }
 
 

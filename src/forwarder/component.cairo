@@ -9,7 +9,9 @@ pub trait IForwarderExternal<T> {
 #[starknet::component]
 pub mod ForwarderComponent {
     use core::num::traits::Zero;
+    use openzeppelin_account::interface::{ISRC6Dispatcher, ISRC6DispatcherTrait};
     use openzeppelin_merkle_tree::merkle_proof;
+    use openzeppelin_utils::snip12::OffchainMessageHash;
     use starknet::SyscallResultTrait;
     use starknet::eth_address::EthAddress;
     use starknet::storage::{
@@ -17,6 +19,7 @@ pub mod ForwarderComponent {
     };
     use starknet::syscalls::call_contract_syscall;
     use crate::forwarder::signature;
+    use crate::types::message::Message;
     use super::*;
 
     #[storage]
@@ -100,6 +103,8 @@ pub mod ForwarderComponent {
             merkle_tree_key: MerkleTreeKey,
             proof: Span<felt252>,
             leaf_data: LeafData<ContractAddress>,
+            recipient: ContractAddress,
+            sn_signature: Span<felt252>,
         ) {
             let merkle_root = self.assert_valid_merkle_root_and_get(merkle_tree_key);
 
@@ -107,7 +112,16 @@ pub mod ForwarderComponent {
             self.assert_leaf_not_consumed_and_consume(merkle_tree_key, leaf_hash);
             self.assert_valid_proof(proof, merkle_root, leaf_hash);
 
-            let recipient = leaf_data.address;
+            let owner = leaf_data.address;
+            let message = Message { recipient: recipient };
+            let hash = message.get_message_hash(owner);
+            let is_valid_signature_felt = ISRC6Dispatcher { contract_address: owner }
+                .is_valid_signature(hash, sn_signature.into());
+
+            let is_valid_signature = is_valid_signature_felt == starknet::VALIDATED
+                || is_valid_signature_felt == 1;
+            assert!(is_valid_signature, "Invalid signature");
+
             let data = leaf_data.data.span();
             self.forward(merkle_tree_key, leaf_hash, recipient, data);
         }

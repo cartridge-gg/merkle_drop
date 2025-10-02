@@ -176,6 +176,7 @@ fn test__ETHEREUM_drop() {
             leaf_data_serialized.span(),
             Option::Some(recipient_address),
             Option::Some(signature),
+            Option::None,
         );
 
     let balance = claim_disp.get_balance('TOKEN_A', recipient_address);
@@ -230,7 +231,9 @@ fn test__STARKNET_drop() {
         .span();
 
     forwarder_disp
-        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+        .verify_and_forward(
+            key, proof, leaf_data_serialized.span(), Option::None, Option::None, Option::None,
+        );
 
     let balance_A = claim_disp.get_balance('TOKEN_A', SN_ADDRESS);
     assert!(balance_A == 20, "invalid recipient balance TOKEN_A")
@@ -287,10 +290,14 @@ fn test__STARKNET_drop_cannot_claim_twice() {
         .span();
 
     forwarder_disp
-        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+        .verify_and_forward(
+            key, proof, leaf_data_serialized.span(), Option::None, Option::None, Option::None,
+        );
 
     forwarder_disp
-        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+        .verify_and_forward(
+            key, proof, leaf_data_serialized.span(), Option::None, Option::None, Option::None,
+        );
 }
 
 
@@ -339,7 +346,9 @@ fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
         .span();
 
     forwarder_disp
-        .verify_and_forward(key, proof, leaf_data_serialized.span(), Option::None, Option::None);
+        .verify_and_forward(
+            key, proof, leaf_data_serialized.span(), Option::None, Option::None, Option::None,
+        );
 }
 
 

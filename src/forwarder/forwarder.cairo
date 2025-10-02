@@ -3,7 +3,7 @@
 
 use starknet::ContractAddress;
 use starknet::eth_address::EthAddress;
-use crate::types::{EthereumSignature, LeafData, LeafDataHashImpl, MerkleTreeKey};
+use crate::types::{LeafData, LeafDataHashImpl, MerkleTreeKey, Signature};
 
 const UPGRADER_ROLE: felt252 = selector!("UPGRADER_ROLE");
 const FORWARDER_ROLE: felt252 = selector!("FORWARDER_ROLE");
@@ -16,8 +16,8 @@ pub trait IForwarderABI<T> {
         merkle_tree_key: MerkleTreeKey,
         proof: Span<felt252>,
         leaf_data: Span<felt252>,
-        recipient: Option<ContractAddress>,
-        eth_signature: Option<EthereumSignature>,
+        recipient: ContractAddress,
+        signature: Signature,
     );
     fn is_consumed(self: @T, merkle_tree_key: MerkleTreeKey, leaf_hash: felt252) -> bool;
     fn get_merkle_root(ref self: T, merkle_tree_key: MerkleTreeKey) -> felt252;
@@ -32,8 +32,8 @@ pub trait IForwarder<T> {
         merkle_tree_key: MerkleTreeKey,
         proof: Span<felt252>,
         leaf_data: Span<felt252>,
-        recipient: Option<ContractAddress>,
-        eth_signature: Option<EthereumSignature>,
+        recipient: ContractAddress,
+        signature: Signature,
     );
     fn is_consumed(self: @T, merkle_tree_key: MerkleTreeKey, leaf_hash: felt252) -> bool;
 }
@@ -140,8 +140,8 @@ mod Forwarder {
             merkle_tree_key: MerkleTreeKey,
             proof: Span<felt252>,
             leaf_data: Span<felt252>,
-            recipient: Option<ContractAddress>,
-            eth_signature: Option<EthereumSignature>,
+            recipient: ContractAddress,
+            signature: Signature,
         ) {
             self.pausable.assert_not_paused();
 
@@ -150,16 +150,28 @@ mod Forwarder {
             if merkle_tree_key.chain_id == 'STARKNET' {
                 let leaf_data = Serde::<LeafData<ContractAddress>>::deserialize(ref leaf_data)
                     .expect('invalid sn leaf_data');
-                self.forwarder.verify_and_forward_starknet(merkle_tree_key, proof, leaf_data);
+                let signature = match signature {
+                    Signature::Starknet(sn_signature) => sn_signature,
+                    _ => panic!("signature must be starknet"),
+                };
+
+                self
+                    .forwarder
+                    .verify_and_forward_starknet(
+                        merkle_tree_key, proof, leaf_data, recipient, signature,
+                    );
             } else if merkle_tree_key.chain_id == 'ETHEREUM' {
                 let leaf_data = Serde::<LeafData<EthAddress>>::deserialize(ref leaf_data)
                     .expect('invalid eth leaf_data');
-                let recipient = recipient.expect('no recipient');
-                let eth_signature = eth_signature.expect('no eth_signature');
+                let signature = match signature {
+                    Signature::Ethereum(eth_signature) => eth_signature,
+                    _ => panic!("signature must be ethereum"),
+                };
+
                 self
                     .forwarder
                     .verify_and_forward_ethereum(
-                        merkle_tree_key, proof, leaf_data, recipient, eth_signature,
+                        merkle_tree_key, proof, leaf_data, recipient, signature,
                     );
             } else {
                 assert!(false, "unsupported chain_id")
