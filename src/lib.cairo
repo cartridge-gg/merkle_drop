@@ -26,5 +26,6 @@ pub mod types {
 
 #[cfg(test)]
 pub mod tests {
+    pub mod sn_account;
     pub mod test_contract;
 }
