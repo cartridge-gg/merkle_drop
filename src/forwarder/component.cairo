@@ -115,6 +115,7 @@ pub mod ForwarderComponent {
             let owner = leaf_data.address;
             let message = Message { recipient: recipient };
             let hash = message.get_message_hash(owner);
+
             let is_valid_signature_felt = ISRC6Dispatcher { contract_address: owner }
                 .is_valid_signature(hash, sn_signature.into());
 

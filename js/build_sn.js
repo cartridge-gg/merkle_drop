@@ -40,10 +40,10 @@ const main = async () => {
     return [i[0], "0", CallData.compile([amount_A, amount_B, token_ids])];
   });
 
-  fs.writeFileSync(
-    "./snapshots/dope-22728943-sn.json",
-    JSON.stringify(snapshot, null, 2)
-  );
+  // fs.writeFileSync(
+  //   "./snapshots/dope-22728943-sn.json",
+  //   JSON.stringify(snapshot, null, 2)
+  // );
 };
 
 main();
