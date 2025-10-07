@@ -124,7 +124,7 @@ mod Forwarder {
         fn initialize_drop(
             ref self: ContractState, merkle_tree_key: MerkleTreeKey, merkle_tree_root: felt252,
         ) {
-            // self.accesscontrol.assert_only_role(FORWARDER_ROLE);
+            self.accesscontrol.assert_only_role(FORWARDER_ROLE);
             self.pausable.assert_not_paused();
             self.forwarder.initialize_drop(merkle_tree_key, merkle_tree_root);
         }
