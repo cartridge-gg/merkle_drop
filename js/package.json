@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@ericnordelo/strk-merkle-tree": "^1.0.0",
-    "starknet": "^7.6.4",
+    "starknet": "^8.5.2",
     "viem": "^2.34.0"
   },
   "devDependencies": {

@@ -1,10 +1,10 @@
 use openzeppelin_upgrades::interface::{IUpgradeableDispatcher, IUpgradeableDispatcherTrait};
-use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
-use starknet::ContractAddress;
+use snforge_std::{ContractClassTrait, DeclareResultTrait, declare, start_cheat_chain_id_global};
 use starknet::eth_address::EthAddress;
+use starknet::{ContractAddress, SyscallResultTrait};
 use crate::consumer::example::{IClaimDispatcher, IClaimDispatcherTrait};
 use crate::forwarder::{IForwarderABIDispatcher, IForwarderABIDispatcherTrait};
-use crate::types::{EthereumSignature, LeafData, LeafDataHashImpl, MerkleTreeKey};
+use crate::types::{EthereumSignature, LeafData, LeafDataHashImpl, MerkleTreeKey, Signature};
 
 const ADMIN: ContractAddress = 0x1111.try_into().unwrap();
 
@@ -32,13 +32,14 @@ fn deploy_contract_and_upgrade(
 
     starknet::syscalls::call_contract_syscall(
         contract_address, selector!("initialize"), calldata.span(),
-    );
+    )
+        .unwrap_syscall();
 
     contract_address
 }
 
 
-fn setup() -> (IForwarderABIDispatcher, IClaimDispatcher) {
+fn setup() -> (IForwarderABIDispatcher, IClaimDispatcher, ContractAddress) {
     let admin_address_felt: felt252 = ADMIN.into();
     let forwarder_address = deploy_contract(
         "Forwarder", @array![admin_address_felt, admin_address_felt, admin_address_felt],
@@ -52,20 +53,31 @@ fn setup() -> (IForwarderABIDispatcher, IClaimDispatcher) {
 
     let claim_disp = IClaimDispatcher { contract_address: claim_contract_address };
 
+    let eligible_account_address = deploy_contract(
+        "SnAccount",
+        @array![
+            0x6b0aab388dc7b240801b5aa0722bfcd39a1f397e83d5c032c198b18594b665e,
+        ] // public key for pk=0x420
+    );
+    // eligible_account_address : 0x4ce00ffd9b927a25b31291371af851a6d242c18c4e1668dd224484d4a09d556
+
+    start_cheat_chain_id_global('SN_SEPOLIA');
+
     // println!("     forwarder_address: 0x{:x}", forwarder_disp.contract_address);
     // println!("claim_contract_address: 0x{:x}", claim_disp.contract_address);
+    // println!("_eligible_account_address:0x{:x}", eligible_account_address);
 
-    (forwarder_disp, claim_disp)
+    (forwarder_disp, claim_disp, eligible_account_address)
 }
 
 #[test]
 fn test_deploy() {
-    let (forwarder_disp, claim_disp) = setup();
+    let (_forwarder_disp, _claim_disp, _eligible_account_address) = setup();
 }
 
 #[test]
 fn test__initialize_drop() {
-    let (forwarder_disp, claim_disp) = setup();
+    let (forwarder_disp, claim_disp, _eligible_account_address) = setup();
 
     let key = MerkleTreeKey {
         chain_id: 'ETHEREUM',
@@ -84,7 +96,7 @@ fn test__initialize_drop() {
 #[test]
 #[should_panic(expected: "merkle_drop: already initialized")]
 fn test__initialize_drop_cannot_reiint() {
-    let (forwarder_disp, claim_disp) = setup();
+    let (forwarder_disp, claim_disp, _eligible_account_address) = setup();
 
     let key = MerkleTreeKey {
         chain_id: 'ETHEREUM',
@@ -115,7 +127,7 @@ fn test__initialize_drop_cannot_reiint() {
 
 #[test]
 fn test__ETHEREUM_drop() {
-    let (forwarder_disp, claim_disp) = setup();
+    let (forwarder_disp, claim_disp, _eligible_account_address) = setup();
 
     let key = MerkleTreeKey {
         chain_id: 'ETHEREUM',
@@ -174,9 +186,8 @@ fn test__ETHEREUM_drop() {
             key,
             proof,
             leaf_data_serialized.span(),
-            Option::Some(recipient_address),
-            Option::Some(signature),
-            Option::None,
+            recipient_address,
+            Signature::Ethereum(signature),
         );
 
     let balance = claim_disp.get_balance('TOKEN_A', recipient_address);
@@ -186,7 +197,7 @@ fn test__ETHEREUM_drop() {
 
 #[test]
 fn test__STARKNET_drop() {
-    let (forwarder_disp, claim_disp) = setup();
+    let (forwarder_disp, claim_disp, eligible_account_address) = setup();
 
     let key = MerkleTreeKey {
         chain_id: 'STARKNET',
@@ -195,13 +206,13 @@ fn test__STARKNET_drop() {
         salt: 0x123,
     };
 
-    let root = 0x012009b5d429397c4c5bd66e81cb7ca972069e3e528802f7f2a1027aface1c47;
+    let root = 0x82bd6ad245913b137a6429d42069f399eca7f3c11aeaac345847e126d6b26f;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
         ContractAddress,
     > {
-        address: SN_ADDRESS,
+        address: eligible_account_address,
         index: 0,
         claim_contract_address: key.claim_contract_address,
         entrypoint: key.entrypoint,
@@ -218,21 +229,31 @@ fn test__STARKNET_drop() {
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x04af246428fbaf1019b4d04075f9697c03386a72a9f596b80e75a6a050ed708c,
-        0x07623c754e5d16937b7682ca5d152800a977bb2c3b82b8f8399f1bacaf60162d,
-        0x06ab52049c21b5d9c3e38efeeb8d8d6160d319d2221d830cb57e51f205cdf5e4,
-        0x350e7c38dbe68cf213f572c97966a1de478d89676b6e48d6d9fe07a6ea578a,
-        0x0755fcf1e30fe08a993505b9919e6c3a1052f8abfb30d2e85e3262b096bb512b,
-        0x04540948ddf85ecc7b9bbcd8a7733c5d18c7e8cb4de309e6bda6aabd34a2b40f,
-        0x045191305a4234959933d9e3f0b8b16f058c0f8ce85799d5a9205cb7277ebce9,
-        0x76bdb97da512de9ce37e8f7aa33460b38d3d621430f835621c241f516d2380,
-        0x04b428c3a4997aa3da035cd84cc3030ffa29479529317e24978eda4eccabbe88,
+        0xa7e945889cb19fa7e8ebe08ba50bf9a2316dbb96705d522a0ef7aedf029d86,
+        0x05aae951f60b60db5be44e3e93a6767604a993d37ce3198a66866151448e6c1b,
+        0x05512d7b868e2798ca12352a81931deccc60c465763a57f75d495cce45c7f3a6,
+        0x02fc30b93a7c6ca00d7af0a626b376cfff355cc0fa52da102ef35a5903ac0487,
+        0x36ffa3b63f2c2f7c7aedc1df36046697d10a405867b41dd4bb5b771bb1762f,
+        0x02c7671e1f878b3a4f80596796f020e0fb035ae290c2bc4c505c09d4b926fdcc,
+        0x03cbb025516f320bc9a0c48392148ceda1a34e5f3d80ad125a43f7a3104e39cd,
+        0x019107c73a86d18e5ec02a6ecc97e01d057eb1b198fb7a84174e8573847b7be6,
+        0x02527de293966795b7bc56c520a72c674fc2919729d64e7a84ec2165ccd4ae88,
     ]
         .span();
 
     forwarder_disp
         .verify_and_forward(
-            key, proof, leaf_data_serialized.span(), Option::None, Option::None, Option::None,
+            key,
+            proof,
+            leaf_data_serialized.span(),
+            SN_ADDRESS,
+            Signature::Starknet(
+                array![
+                    2583498682322851288059727624983486435632732766748535066715239362221709468668,
+                    3343726062384442414135196406685922125638025173513604381875603144030195394372,
+                ]
+                    .span(),
+            ),
         );
 
     let balance_A = claim_disp.get_balance('TOKEN_A', SN_ADDRESS);
@@ -248,7 +269,7 @@ fn test__STARKNET_drop() {
 #[test]
 #[should_panic(expected: "merkle_drop: already consumed")]
 fn test__STARKNET_drop_cannot_claim_twice() {
-    let (forwarder_disp, claim_disp) = setup();
+    let (forwarder_disp, claim_disp, eligible_account_address) = setup();
 
     let key = MerkleTreeKey {
         chain_id: 'STARKNET',
@@ -257,13 +278,13 @@ fn test__STARKNET_drop_cannot_claim_twice() {
         salt: 0x123,
     };
 
-    let root = 0x012009b5d429397c4c5bd66e81cb7ca972069e3e528802f7f2a1027aface1c47;
+    let root = 0x82bd6ad245913b137a6429d42069f399eca7f3c11aeaac345847e126d6b26f;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
         ContractAddress,
     > {
-        address: SN_ADDRESS,
+        address: eligible_account_address,
         index: 0,
         claim_contract_address: key.claim_contract_address,
         entrypoint: key.entrypoint,
@@ -277,26 +298,46 @@ fn test__STARKNET_drop_cannot_claim_twice() {
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x04af246428fbaf1019b4d04075f9697c03386a72a9f596b80e75a6a050ed708c,
-        0x07623c754e5d16937b7682ca5d152800a977bb2c3b82b8f8399f1bacaf60162d,
-        0x06ab52049c21b5d9c3e38efeeb8d8d6160d319d2221d830cb57e51f205cdf5e4,
-        0x350e7c38dbe68cf213f572c97966a1de478d89676b6e48d6d9fe07a6ea578a,
-        0x0755fcf1e30fe08a993505b9919e6c3a1052f8abfb30d2e85e3262b096bb512b,
-        0x04540948ddf85ecc7b9bbcd8a7733c5d18c7e8cb4de309e6bda6aabd34a2b40f,
-        0x045191305a4234959933d9e3f0b8b16f058c0f8ce85799d5a9205cb7277ebce9,
-        0x76bdb97da512de9ce37e8f7aa33460b38d3d621430f835621c241f516d2380,
-        0x04b428c3a4997aa3da035cd84cc3030ffa29479529317e24978eda4eccabbe88,
+        0xa7e945889cb19fa7e8ebe08ba50bf9a2316dbb96705d522a0ef7aedf029d86,
+        0x05aae951f60b60db5be44e3e93a6767604a993d37ce3198a66866151448e6c1b,
+        0x05512d7b868e2798ca12352a81931deccc60c465763a57f75d495cce45c7f3a6,
+        0x02fc30b93a7c6ca00d7af0a626b376cfff355cc0fa52da102ef35a5903ac0487,
+        0x36ffa3b63f2c2f7c7aedc1df36046697d10a405867b41dd4bb5b771bb1762f,
+        0x02c7671e1f878b3a4f80596796f020e0fb035ae290c2bc4c505c09d4b926fdcc,
+        0x03cbb025516f320bc9a0c48392148ceda1a34e5f3d80ad125a43f7a3104e39cd,
+        0x019107c73a86d18e5ec02a6ecc97e01d057eb1b198fb7a84174e8573847b7be6,
+        0x02527de293966795b7bc56c520a72c674fc2919729d64e7a84ec2165ccd4ae88,
     ]
         .span();
 
     forwarder_disp
         .verify_and_forward(
-            key, proof, leaf_data_serialized.span(), Option::None, Option::None, Option::None,
+            key,
+            proof,
+            leaf_data_serialized.span(),
+            SN_ADDRESS,
+            Signature::Starknet(
+                array![
+                    2583498682322851288059727624983486435632732766748535066715239362221709468668,
+                    3343726062384442414135196406685922125638025173513604381875603144030195394372,
+                ]
+                    .span(),
+            ),
         );
 
     forwarder_disp
         .verify_and_forward(
-            key, proof, leaf_data_serialized.span(), Option::None, Option::None, Option::None,
+            key,
+            proof,
+            leaf_data_serialized.span(),
+            SN_ADDRESS,
+            Signature::Starknet(
+                array![
+                    2583498682322851288059727624983486435632732766748535066715239362221709468668,
+                    3343726062384442414135196406685922125638025173513604381875603144030195394372,
+                ]
+                    .span(),
+            ),
         );
 }
 
@@ -304,7 +345,7 @@ fn test__STARKNET_drop_cannot_claim_twice() {
 #[test]
 #[should_panic(expected: "merkle_drop: invalid proof")]
 fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
-    let (forwarder_disp, claim_disp) = setup();
+    let (forwarder_disp, claim_disp, eligible_account_address) = setup();
 
     let key = MerkleTreeKey {
         chain_id: 'STARKNET',
@@ -313,13 +354,13 @@ fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
         salt: 0x123,
     };
 
-    let root = 0x012009b5d429397c4c5bd66e81cb7ca972069e3e528802f7f2a1027aface1c47;
+    let root = 0x82bd6ad245913b137a6429d42069f399eca7f3c11aeaac345847e126d6b26f;
     forwarder_disp.initialize_drop(key, root);
 
     let leaf_data = LeafData::<
         ContractAddress,
     > {
-        address: SN_ADDRESS,
+        address: eligible_account_address,
         index: 0,
         claim_contract_address: key.claim_contract_address,
         entrypoint: key.entrypoint,
@@ -333,33 +374,44 @@ fn test__STARKNET_drop_cannot_claim_with_invalid_proof() {
     leaf_data.serialize(ref leaf_data_serialized);
 
     let proof = array![
-        0x04af246428fbaf1019b4d04075f9697c03386a72a9f596b80e75a6a050ed708c,
-        0x07623c754e5d16937b7682ca5d152800a977bb2c3b82b8f8399f1bacaf60162d,
-        0x06ab52049c21b5d9c3e38efeeb8d8d6160d319d2221d830cb57e51f205cdf5e4,
-        0x350e7c38dbe68cf213f572c97966a1de478d89676b6e48d6d9fe07a6ea578a,
-        0x0755fcf1e30fe08a993505b9919e6c3a1052f8abfb30d2e85e3262b096bb512b,
-        0x04540948ddf85ecc7b9bbcd8a7733c5d18c7e8cb4de309e6bda6aabd34a2b40f,
-        // 0x045191305a4234959933d9e3f0b8b16f058c0f8ce85799d5a9205cb7277ebce9,
-        0x76bdb97da512de9ce37e8f7aa33460b38d3d621430f835621c241f516d2380,
-        0x04b428c3a4997aa3da035cd84cc3030ffa29479529317e24978eda4eccabbe88,
+        0xa7e945889cb19fa7e8ebe08ba50bf9a2316dbb96705d522a0ef7aedf029d86,
+        0x05aae951f60b60db5be44e3e93a6767604a993d37ce3198a66866151448e6c1b,
+        0x05512d7b868e2798ca12352a81931deccc60c465763a57f75d495cce45c7f3a6,
+        0x02fc30b93a7c6ca00d7af0a626b376cfff355cc0fa52da102ef35a5903ac0487,
+        0x36ffa3b63f2c2f7c7aedc1df36046697d10a405867b41dd4bb5b771bb1762f,
+        0x02c7671e1f878b3a4f80596796f020e0fb035ae290c2bc4c505c09d4b926fdcc,
+        // 0x03cbb025516f320bc9a0c48392148ceda1a34e5f3d80ad125a43f7a3104e39cd,
+        0x019107c73a86d18e5ec02a6ecc97e01d057eb1b198fb7a84174e8573847b7be6,
+        0x02527de293966795b7bc56c520a72c674fc2919729d64e7a84ec2165ccd4ae88,
     ]
         .span();
 
     forwarder_disp
         .verify_and_forward(
-            key, proof, leaf_data_serialized.span(), Option::None, Option::None, Option::None,
+            key,
+            proof,
+            leaf_data_serialized.span(),
+            SN_ADDRESS,
+            Signature::Starknet(
+                array![
+                    2583498682322851288059727624983486435632732766748535066715239362221709468668,
+                    3343726062384442414135196406685922125638025173513604381875603144030195394372,
+                ]
+                    .span(),
+            ),
         );
 }
 
 
 #[test]
 fn test__ETHEREUM_split_drop() {
-    let (forwarder_disp, claim_disp) = setup();
+    let (forwarder_disp, claim_disp, _eligible_account_address) = setup();
 
     let key = MerkleTreeKey {
         chain_id: 'ETHEREUM',
         claim_contract_address: claim_disp.contract_address,
         entrypoint: selector!("claim_from_forwarder"),
+        salt: 0x0,
     };
 
     let root = 0x068807b1aa01b3add91a567648a08cdb2b572c16bab197b962bcd53d5d8a463a;
@@ -432,8 +484,8 @@ fn test__ETHEREUM_split_drop() {
             key,
             proof_0,
             leaf_data_0_serialized.span(),
-            Option::Some(recipient_address),
-            Option::Some(signature),
+            recipient_address,
+            Signature::Ethereum(signature),
         );
 
     let balance = claim_disp.get_balance('TOKEN_A', recipient_address);
@@ -444,8 +496,8 @@ fn test__ETHEREUM_split_drop() {
             key,
             proof_1,
             leaf_data_1_serialized.span(),
-            Option::Some(recipient_address),
-            Option::Some(signature),
+            recipient_address,
+            Signature::Ethereum(signature),
         );
 
     let balance = claim_disp.get_balance('TOKEN_A', recipient_address);
