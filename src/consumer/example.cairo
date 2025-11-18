@@ -6,7 +6,10 @@ pub trait IClaim<T> {
     fn get_balance(self: @T, key: felt252, address: ContractAddress) -> u32;
     fn claim_from_forwarder(ref self: T, recipient: ContractAddress, leaf_data: Span<felt252>);
     fn claim_from_forwarder_with_extra_data(
-        ref self: T, recipient: ContractAddress, leaf_data: Span<felt252>,
+        ref self: T,
+        recipient: ContractAddress,
+        leaf_data: Span<felt252>,
+        username: Option<felt252>,
     );
 }
 
@@ -69,7 +72,10 @@ mod ClaimContract {
         }
 
         fn claim_from_forwarder_with_extra_data(
-            ref self: ContractState, recipient: ContractAddress, leaf_data: Span<felt252>,
+            ref self: ContractState,
+            recipient: ContractAddress,
+            leaf_data: Span<felt252>,
+            username: Option<felt252>,
         ) {
             // MUST check caller is forwarder
             self.assert_caller_is_forwarder();

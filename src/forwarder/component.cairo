@@ -80,6 +80,7 @@ pub mod ForwarderComponent {
             proof: Span<felt252>,
             leaf_data: LeafData<EthAddress>,
             recipient: ContractAddress,
+            username: Option<felt252>,
             eth_signature: EthereumSignature,
         ) {
             let merkle_root = self.assert_valid_merkle_root_and_get(merkle_tree_key);
@@ -95,7 +96,7 @@ pub mod ForwarderComponent {
             self.assert_valid_proof(proof, merkle_root, leaf_hash);
 
             let data = leaf_data.data.span();
-            self.forward(merkle_tree_key, leaf_hash, recipient, data);
+            self.forward(merkle_tree_key, leaf_hash, recipient, username, data);
         }
 
         fn verify_and_forward_starknet(
@@ -104,6 +105,7 @@ pub mod ForwarderComponent {
             proof: Span<felt252>,
             leaf_data: LeafData<ContractAddress>,
             recipient: ContractAddress,
+            username: Option<felt252>,
             sn_signature: Span<felt252>,
         ) {
             let merkle_root = self.assert_valid_merkle_root_and_get(merkle_tree_key);
@@ -124,7 +126,7 @@ pub mod ForwarderComponent {
             assert!(is_valid_signature, "Invalid signature");
 
             let data = leaf_data.data.span();
-            self.forward(merkle_tree_key, leaf_hash, recipient, data);
+            self.forward(merkle_tree_key, leaf_hash, recipient, username, data);
         }
 
         fn is_consumed(
@@ -144,11 +146,13 @@ pub mod ForwarderComponent {
             merkle_tree_key: MerkleTreeKey,
             leaf_hash: felt252,
             recipient: ContractAddress,
+            username: Option<felt252>,
             data: Span<felt252>,
         ) {
             let mut calldata = array![];
             recipient.serialize(ref calldata);
             data.serialize(ref calldata);
+            username.serialize(ref calldata);
 
             call_contract_syscall(
                 merkle_tree_key.claim_contract_address, merkle_tree_key.entrypoint, calldata.span(),

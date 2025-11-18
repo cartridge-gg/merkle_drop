@@ -17,6 +17,7 @@ pub trait IForwarderABI<T> {
         proof: Span<felt252>,
         leaf_data: Span<felt252>,
         recipient: ContractAddress,
+        username: Option<felt252>,
         signature: Signature,
     );
     fn is_consumed(self: @T, merkle_tree_key: MerkleTreeKey, leaf_hash: felt252) -> bool;
@@ -33,6 +34,7 @@ pub trait IForwarder<T> {
         proof: Span<felt252>,
         leaf_data: Span<felt252>,
         recipient: ContractAddress,
+        username: Option<felt252>,
         signature: Signature,
     );
     fn is_consumed(self: @T, merkle_tree_key: MerkleTreeKey, leaf_hash: felt252) -> bool;
@@ -141,6 +143,7 @@ mod Forwarder {
             proof: Span<felt252>,
             leaf_data: Span<felt252>,
             recipient: ContractAddress,
+            username: Option<felt252>,
             signature: Signature,
         ) {
             self.pausable.assert_not_paused();
@@ -158,7 +161,7 @@ mod Forwarder {
                 self
                     .forwarder
                     .verify_and_forward_starknet(
-                        merkle_tree_key, proof, leaf_data, recipient, signature,
+                        merkle_tree_key, proof, leaf_data, recipient, username, signature,
                     );
             } else if merkle_tree_key.chain_id == 'ETHEREUM' {
                 let leaf_data = Serde::<LeafData<EthAddress>>::deserialize(ref leaf_data)
@@ -171,7 +174,7 @@ mod Forwarder {
                 self
                     .forwarder
                     .verify_and_forward_ethereum(
-                        merkle_tree_key, proof, leaf_data, recipient, signature,
+                        merkle_tree_key, proof, leaf_data, recipient, username, signature,
                     );
             } else {
                 assert!(false, "unsupported chain_id")
